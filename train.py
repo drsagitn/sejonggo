@@ -25,10 +25,10 @@ def train(model, game_model_name):
     for root, dirs, files in os.walk(directory):
         for f in files:
             full_filename = os.path.join(root, f)
-            all_files.append(full_filename)
+            all_files.append(full_filename) # IS THIS RECENT GAMES?
     for epoch in tqdm.tqdm(range(EPOCHS_PER_SAVE), desc="Epochs"):
         for worker in tqdm.tqdm(range(NUM_WORKERS), desc="Worker_batch"):
-            files = sample(all_files, BATCH_SIZE)
+            files = sample(all_files, BATCH_SIZE) #WHY RANDOM CHOICES? SHOULD PICK LATEST GAMES
 
             X = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
             policy_y = np.zeros((BATCH_SIZE, 1))

@@ -109,7 +109,7 @@ def load_latest_model():
     for filename in os.listdir(conf['MODEL_DIR']):
         try:
             name = filename.split('.')[0] # remove .h5
-            i = int(name.split('_')[-1])
+            i = int(name.split('_')[-1]) #may throw exception here
             if i > index:
                 model_filename = filename
                 index = i

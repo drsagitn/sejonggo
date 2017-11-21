@@ -5,6 +5,7 @@ conf = {
     'BEST_MODEL': 'best_model.h5',
     'SHOW_EACH_MOVE': False,
     'SHOW_END_GAME': False,
+    'REPORT_PERIOD':200,
 
     ### MODEL ###
     'N_RESIDUAL_BLOCKS': 20, # Size of the tower of residual blocks, 20 for small model, 40 for alphagozero full size
@@ -31,4 +32,25 @@ conf = {
     'EVALUATE_N_GAMES': 100,# The number of games to test on to elect new best model, 400 in paper
     'EVALUATE_MARGIN': .5 + 1/sqrt(100),# Model has to win by that margin to be elected, 55% in paper
 
+    ### MCTS
+    'MSTC_PATTERN_FILE': 'patterns.spat',
+    'LARGE_MCTS_PATTERN_FILE': 'patterns.prob',
+    'PRIOR_EVEN':10,
+    'RESIGN_THRES': 0.2,
+    'N_SIMS':1400,
+    'EXPAND_VISITS':8,
+    'FASTPLAY20_THRES': 0.8,  # if at 20% playouts winrate is >this, stop reading
+    'FASTPLAY5_THRES': 0.95,  # if at 5% playouts winrate is >this, stop reading
+    'PROB_HEURISTIC': {'capture': 0.9, 'pat3': 0.95},  # probability of heuristic suggestions being taken in playout
+    'PROB_SSAREJECT': 0.9,  # probability of rejecting suggested self-atari in playout
+    'PROB_RSAREJECT': 0.5,  # probability of rejecting random self-atari in playout; this is lower than above to allow nakade
+    'PRIOR_EVEN': 10,  # should be even number; 0.5 prior
+    'PRIOR_SELFATARI': 10,  # negative prior
+    'PRIOR_CAPTURE_ONE': 15,
+    'PRIOR_CAPTURE_MANY': 30,
+    'PRIOR_PAT3': 10,
+    'PRIOR_LARGEPATTERN': 100,  # most moves have relatively small probability
+    'PRIOR_CFG': [24, 22, 8],  # priors for moves in cfg dist. 1, 2, 3
+    'PRIOR_EMPTYAREA': 10,
+    'RAVE_EQUIV':3500,
 }
