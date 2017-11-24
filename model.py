@@ -80,6 +80,7 @@ def build_model(name):
     model.compile(sgd, loss=loss)
     return model
 
+
 def create_initial_model(name):
     full_filename = os.path.join(conf['MODEL_DIR'], name) + ".h5"
     if os.path.isfile(full_filename):
@@ -103,6 +104,7 @@ def create_initial_model(name):
     model.save(best_filename)
     return model
 
+
 def load_latest_model():
     index = -1
     model_filename = None
@@ -118,4 +120,6 @@ def load_latest_model():
     model = load_model(os.path.join(conf['MODEL_DIR'], model_filename), custom_objects={'loss': loss})
     print("Loaded latest model", model_filename)
     return model
+
+
 
