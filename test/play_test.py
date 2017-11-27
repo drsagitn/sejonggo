@@ -1,4 +1,5 @@
 import sys
+sys.path.append("..")
 from model import *
 from self_play import play_game, self_play, save_file
 from conf import conf

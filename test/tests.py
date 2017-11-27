@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append("..")
 from conf import conf
 conf['SIZE'] = 9  # Override settings for tests
 conf['KOMI'] = 5.5  # Override settings for tests

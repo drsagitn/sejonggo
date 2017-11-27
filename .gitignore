@@ -2,3 +2,11 @@
 \.idea/
 
 __pycache__/
+
+test/games
+test/logs
+test/models
+
+logs/
+games/
+models/
