@@ -37,8 +37,6 @@ def axis_symmetry_indexes(angle):
         newx += (SIZE - 1)/2
         newy += (SIZE - 1)/2
         transpose_index = int(round(newx + SIZE * newy))
-        if transpose_index > SIZE * SIZE:
-            import ipdb;ipdb.set_trace()
         rotation_swap[index] = transpose_index
     rotation_swap[SIZE * SIZE] = SIZE * SIZE
     return rotation_swap
@@ -66,7 +64,10 @@ def reverse_vertical_axis(policy):
 def right_diagonal(board):
     return np.rot90(np.transpose(board, axes=(0, 2, 1, 3)), k=2, axes=(1, 2))
 
+
 RIGHT_DIAGONAL_SWAP = axis_symmetry_indexes(3*pi/4.)
+
+
 def reverse_right_diagonal(policy):
     policy[:,:] = policy[:,RIGHT_DIAGONAL_SWAP]
     return policy
@@ -77,12 +78,10 @@ def horizontal_axis(board):
     board[:,list(range(SIZE)),:,:] = board[:,list(reversed(range(SIZE))),:,:]
     return board
 
-HORIZONTAL_AXIS_SWAP = [0 for i in range(SIZE * SIZE + 1)]
-for x, y in itertools.product(range(SIZE), repeat=2):
-    index = x + SIZE * y
-    transpose_index = x + SIZE * (SIZE - 1 - y)
-    HORIZONTAL_AXIS_SWAP[index] = transpose_index
-HORIZONTAL_AXIS_SWAP[SIZE * SIZE] = SIZE * SIZE
+
+HORIZONTAL_AXIS_SWAP = axis_symmetry_indexes(0)
+
+
 def reverse_horizontal_axis(policy):
     policy[:,:] = policy[:,HORIZONTAL_AXIS_SWAP]
     return policy

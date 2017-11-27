@@ -1,7 +1,8 @@
 from __future__ import print_function
-from go_heuristics import *
-from tree_node import TreeNode
-from tree_search import *
+
+from mcts1.tree_node import TreeNode
+from mcts1.tree_search import *
+from __init__ import __version__
 
 spat_patterndict_file = conf['MSTC_PATTERN_FILE']
 large_patterns_file = conf['LARGE_MCTS_PATTERN_FILE']
@@ -106,6 +107,7 @@ def gtp_io():
 
 
 if __name__ == "__main__":
+    print("Sejong-Go (v{})".format(__version__))
     if len(sys.argv) < 2:
         # Default action
         print('Starting in GTP mode...')

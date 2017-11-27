@@ -1,5 +1,7 @@
-from tree_search import *
 import math
+
+from mcts1.tree_search import *
+
 
 class TreeNode():
     """ Monte-Carlo tree node;

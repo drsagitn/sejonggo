@@ -1,9 +1,8 @@
-import random
-from utils import *
-from conf import conf
 import multiprocessing
 from multiprocessing.pool import Pool
-from go_heuristics import *
+
+from mcts1.go_heuristics import *
+from utils import *
 
 N = conf['SIZE']
 MAX_GAME_LEN = N * N *2
