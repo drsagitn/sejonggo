@@ -20,9 +20,9 @@ if __name__ == "__main__":
         model1_name = sys.argv[2]
         model2_name = sys.argv[3]
         print("Loading models...")
-        model1 = load_model(os.path.join(conf['MODEL_DIR'], model1_name), custom_objects={'loss': loss})
+        model1 = load_model(os.path.join('..', conf['MODEL_DIR'], model1_name), custom_objects={'loss': loss})
         print("Loaded model", model1_name)
-        model2 = load_model(os.path.join(conf['MODEL_DIR'], model2_name), custom_objects={'loss': loss})
+        model2 = load_model(os.path.join('..', conf['MODEL_DIR'], model2_name), custom_objects={'loss': loss})
         print("Loaded model", model2_name)
         desc = "Duel %s vs %s" % (model1.name, model2.name)
         tq = tqdm(range(int(num_games)), desc=desc)
