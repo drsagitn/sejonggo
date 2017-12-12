@@ -10,6 +10,11 @@ from keras.models import Model, load_model
 from keras.callbacks import TensorBoard
 from keras.regularizers import l2
 import os
+import logging
+from app_log import setup_logging
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 SIZE = conf['SIZE']
 L2_EPSILON = conf['L2_EPSILON']
@@ -106,6 +111,7 @@ def create_initial_model(name):
 
 
 def load_latest_model():
+    logger.debug("Loading latest model...")
     index = -1
     model_filename = None
     for filename in os.listdir(conf['MODEL_DIR']):
@@ -117,7 +123,9 @@ def load_latest_model():
                 index = i
         except:
             continue
+    logger.debug("Keras load %s", model_filename)
     model = load_model(os.path.join(conf['MODEL_DIR'], model_filename), custom_objects={'loss': loss})
+    logger.debug("Keras done")
     print("Loaded latest model", model_filename)
     return model
 

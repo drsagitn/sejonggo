@@ -15,6 +15,7 @@ def setup_logging(
     value = os.getenv(env_key, None)
     if value:
         path = value
+    # Read logconfig file from path
     if os.path.exists(path):
         with open(path, 'rt') as f:
             config = json.load(f)

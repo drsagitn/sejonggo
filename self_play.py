@@ -17,6 +17,7 @@ from play import (
 )
 from symmetry import random_symmetry_predict
 from random import random
+from model import *
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -133,6 +134,7 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         policies, values = random_symmetry_predict(model, boards)
 
         for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
+            # reshape from [n, n, 17] to [1, n, n, 17]
             shape = board.shape
             board = board.reshape([1] + list(shape))
 
@@ -158,7 +160,9 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         make_play(x, y, board)
         simulate(selected_node, board, model, mcts_batch_size, original_player)
 
+
 def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model):
+    # TODO: make parallelization here, each simulation can be handled by a thread/process/CPU
     for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):
         test_board = np.copy(board)
         original_player = board[0,0,0,-1]
@@ -321,6 +325,48 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
     }
     return game_data
 
+def best_model_self_play():
+    n_games = conf['N_GAMES']
+    mcts_simulations = conf['MCTS_SIMULATIONS']
+    model = load_best_model()
+
+    desc = "Self play %s" % model.name
+    games = tqdm.tqdm(range(n_games), desc=desc)
+    games_data = []
+    current_resign = None
+    min_values = []
+    for game in games:
+
+        if random() > RESIGNATION_PERCENT:
+            resign = current_resign
+        else:
+            resign = None
+
+        start = datetime.datetime.now()
+        game_data = play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True,
+                              resign_model1=resign, resign_model2=resign)
+        stop = datetime.datetime.now()
+
+        # If we did not use resignation, we had the result towards resign value.
+        if resign == None:
+            winner = game_data['winner']
+            if winner == 1:
+                min_value = min([move['value'] for move in game_data['moves'][::2]])
+            else:
+                min_value = min([move['value'] for move in game_data['moves'][1::2]])
+            min_values.append(min_value)
+            l = len(min_values)
+            resignation_index = int(RESIGNATION_ALLOWED_ERROR * l)
+            if resignation_index > 0:
+                current_resign = min_values[resignation_index]
+
+        moves = len(game_data['moves'])
+        speed = ((stop - start).seconds / moves) if moves else 0.
+        games.set_description(desc + " %s moves %.2fs/move " % (moves, speed))
+        save_self_play_data(model.name, game, game_data)
+        games_data.append(game_data)
+    return games_data
+
 
 def self_play(model, n_games, mcts_simulations):
     desc = "Self play %s" % model.name
@@ -384,6 +430,7 @@ def save_file(model_name, game_n, move_data, winner):
         f.create_dataset('policy_target', data=policy_target, dtype=np.float32)
         f.create_dataset('value_target', data=np.array(value_target), dtype=np.float32)
 
+
 def save_game_data(model_name, game_n, game_data):
     winner = game_data['winner']
     for move_data in game_data['moves']:
@@ -391,3 +438,30 @@ def save_game_data(model_name, game_n, game_data):
     if conf['SGF_ENABLED']:
         save_game_sgf(model_name, game_n, game_data)
 
+
+def save_self_play_data(model_name, game_no, game_data):
+    winner = game_data['winner']
+    for move_data in game_data['moves']:
+        board = move_data['board']
+        policy_target = move_data['policy']
+        player = move_data['player']
+        value_target = 1 if winner == player else -1
+        move = move_data['move_n']
+        directory = os.path.join("self_play_data", model_name, "game_%05d" % game_no, "move_%03d" % move)
+        try:
+            os.makedirs(directory)
+        except OSError:
+            while True:
+                game_no += 1
+                directory = os.path.join("self_play_data", model_name, "game_%05d" % game_no, "move_%03d" % move)
+                try:
+                    os.makedirs(directory)
+                    break
+                except OSError:
+                    pass
+        with h5py.File(os.path.join(directory, 'sample.h5'), 'w') as f:
+            f.create_dataset('board', data=board, dtype=np.float32)
+            f.create_dataset('policy_target', data=policy_target, dtype=np.float32)
+            f.create_dataset('value_target', data=np.array(value_target), dtype=np.float32)
+    if conf['SGF_ENABLED']:
+        save_game_sgf(model_name, game_no, game_data)

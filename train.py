@@ -5,7 +5,11 @@ from keras.callbacks import TensorBoard, TerminateOnNaN
 from random import sample
 from conf import conf
 import tqdm
+import logging
+from app_log import setup_logging
 
+setup_logging()
+logger = logging.getLogger(__name__)
 SIZE = conf['SIZE']
 BATCH_SIZE = conf['TRAIN_BATCH_SIZE']
 EPOCHS_PER_SAVE = conf['EPOCHS_PER_SAVE']
@@ -15,8 +19,10 @@ VALIDATION_SPLIT = conf['VALIDATION_SPLIT']
 def train(model, game_model_name, epochs=None):
     if epochs is None:
         epochs = EPOCHS_PER_SAVE
+    logger.info('train for %s epochs', epochs)
     name = model.name
     base_name, index = name.split('_')
+    logger.info('model name %s', name)
     new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
     tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], new_name),
             histogram_freq=conf['HISTOGRAM_FREQ'], batch_size=BATCH_SIZE, write_graph=False, write_grads=False)
@@ -32,8 +38,8 @@ def train(model, game_model_name, epochs=None):
             all_files.append(full_filename) # IS THIS RECENT GAMES?
     for epoch in tqdm.tqdm(range(epochs), desc="Epochs"):
         values = []
-        for worker in tqdm.tqdm(range(NUM_WORKERS), desc="Worker_batch"):
-            files = sample(all_files, BATCH_SIZE) #WHY RANDOM CHOICES? SHOULD PICK LATEST GAMES
+        for worker in tqdm.tqdm(range(NUM_WORKERS), desc="Iteration"):
+            files = sample(all_files, BATCH_SIZE)  # RANDOM because we use SGD (Stochastic Gradient Decent)
 
             X = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
             policy_y = np.zeros((BATCH_SIZE, 1))
