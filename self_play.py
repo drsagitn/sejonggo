@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
-import os
+import shutil
 from math import sqrt
 
 import h5py
@@ -9,7 +9,6 @@ import numpy.ma as ma
 import tqdm
 from numpy.ma.core import MaskedConstant
 from sgfsave import save_game_sgf
-from conf import conf
 from play import (
     legal_moves, index2coord, make_play, game_init,
     choose_first_player,
@@ -325,10 +324,10 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
     }
     return game_data
 
-def best_model_self_play():
+
+def model_self_play(model):
     n_games = conf['N_GAMES']
     mcts_simulations = conf['MCTS_SIMULATIONS']
-    model = load_best_model()
 
     desc = "Self play %s" % model.name
     games = tqdm.tqdm(range(n_games), desc=desc)
@@ -470,3 +469,36 @@ def save_self_play_data(model_name, game_no, game_data):
             f.create_dataset('value_target', data=np.array(value_target), dtype=np.float32)
     if conf['SGF_ENABLED']:
         save_game_sgf(model_name, game_no, game_data)
+
+
+# In this dir, remove all self-play games with num of move < 50
+def clean_up(self_play_dir, min_move):
+    total = 0;
+    for model_dir in os.listdir(self_play_dir):
+        for game_dir in os.listdir(os.path.join(self_play_dir, model_dir)):
+            real_path = os.path.join(self_play_dir, model_dir, game_dir)
+            try:
+                num_move = len(os.listdir(real_path))
+                if num_move < min_move:
+                    shutil.rmtree(real_path)
+                    total += 1
+                    logger.info("Remove %s, number of moves is %s", real_path, num_move)
+            except OSError:
+                pass
+    logger.info("Total removed %s", total)
+
+
+def statistic(self_play_dir,min_move):
+    stat = {}
+    for i in range(min_move):
+        stat[i] = []
+    for model_dir in os.listdir(self_play_dir):
+        for game_dir in os.listdir(os.path.join(self_play_dir, model_dir)):
+            real_path = os.path.join(self_play_dir, model_dir, game_dir)
+            try:
+                num_move = len(os.listdir(real_path))
+                if num_move < min_move:
+                    stat[num_move].append(game_dir)
+            except OSError:
+                pass
+    return stat

@@ -11,9 +11,10 @@ VALIDATION_SPLIT = conf['VALIDATION_SPLIT']
 
 
 class SelfPlayWorker(Process):
-    def __init__(self, gpuid):
+    def __init__(self, gpuid, forever=False):
         Process.__init__(self, name='SelfPlayProcessor')
         self._gpuid = gpuid
+        self._forever = forever
 
     def run(self):
         # set enviornment
@@ -29,13 +30,14 @@ class SelfPlayWorker(Process):
         while True:
             if model.name != name:
                 name = model.name
-                best_model_self_play()
+                model_self_play(model)
             else:
                 logger.info("No new best model, sleep for %s seconds", conf['SLEEP_SECONDS'])
                 time.sleep(conf['SLEEP_SECONDS'])
+            if not self._forever:
+                break
             logger.info("Loading next best model...")
             model = load_best_model()
             logger.info("Loaded %s", model.name)
 
         K.clear_session()
-
