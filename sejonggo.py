@@ -64,6 +64,10 @@ def gtp_io():
                 else:
                     tree = TreeNode(pos=tree.pos.pass_move())
         elif command[0] == "genmove":
+            index = mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model)
+            str_coord(index)
+
+
             tree = tree_search(tree, conf['N_SIMS'], owner_map)
             if tree.pos.last is None:
                 ret = 'pass'

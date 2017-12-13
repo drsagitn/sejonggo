@@ -4,6 +4,16 @@ from conf import conf
 
 SIZE = conf['SIZE']
 SWAP_INDEX = [1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14]
+colstr = 'ABCDEFGHJKLMNOPQRST'
+W = SIZE + 2
+
+
+def str_coord(c):
+    if c is None:
+        return 'pass'
+    row, col = divmod(c - (W+1), W)
+    return '%c%d' % (colstr[col], SIZE - row)
+
 
 def index2coord(index):
     y = index // SIZE
