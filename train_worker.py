@@ -22,7 +22,7 @@ class TrainWorker(Process):
         Process.__init__(self, name='ModelProcessor')
         self._gpuid = gpuid
         self._queue = queue
-        self.model_self_play_data_dir = ""
+        self.data_dir = ""
         self.all_data_file_names = []
 
     def run(self):
@@ -36,16 +36,15 @@ class TrainWorker(Process):
             logger.info("Loading latest model...")
             model = load_latest_model()
             logger.info("Loaded latest model %s", model.name)
-            self.model_self_play_data_dir = os.path.join("self_play_data", model.name)
-            logger.debug("data dir %s, num of subdir %s", self.model_self_play_data_dir,
-                         len(os.listdir(self.model_self_play_data_dir)))
+            self.data_dir = os.path.join("self_play_data", model.name)
+            logger.debug("data dir %s", self.data_dir)
 
-            if len(os.listdir(self.model_self_play_data_dir)) >= conf['N_GAMES']:  # self-play finished their work and generated enough data
+            if os.path.isdir(self.data_dir) and len(os.listdir(self.data_dir)) >= conf['N_GAMES']:  # self-play finished their work and generated enough data
                 self.all_data_file_names = self.get_file_names_data_dir()
                 break
             else:
                 logger.info("Sleep %s seconds to wait for self-play to generate %s games. Current generated %s games",
-                            conf['SLEEP_SECONDS'], conf['N_GAMES'], len(os.listdir(self.model_self_play_data_dir)))
+                            conf['SLEEP_SECONDS'], conf['N_GAMES'], len(os.listdir(self.data_dir)))
                 time.sleep(conf['SLEEP_SECONDS'])  # wait for self-play
 
         self.train(model)
@@ -97,7 +96,7 @@ class TrainWorker(Process):
 
     def get_file_names_data_dir(self):
         all_files = []
-        for root, dirs, files in os.walk(self.model_self_play_data_dir):
+        for root, dirs, files in os.walk(self.data_dir):
             for f in files:
                 full_filename = os.path.join(root, f)
                 all_files.append(full_filename)

@@ -336,6 +336,10 @@ def best_model_self_play():
     current_resign = None
     min_values = []
     for game in games:
+        directory = os.path.join("self_play_data", model.name, "game_%05d" % game)
+        if os.path.isdir(directory):
+            continue
+        os.makedirs(directory)
 
         if random() > RESIGNATION_PERCENT:
             resign = current_resign
@@ -364,6 +368,7 @@ def best_model_self_play():
         speed = ((stop - start).seconds / moves) if moves else 0.
         games.set_description(desc + " %s moves %.2fs/move " % (moves, speed))
         save_self_play_data(model.name, game, game_data)
+        logger.info("Finish self-play game %s", game)
         games_data.append(game_data)
     return games_data
 
