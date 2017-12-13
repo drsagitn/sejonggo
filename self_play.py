@@ -463,6 +463,10 @@ def save_self_play_data(model_name, game_no, game_data):
                     break
                 except OSError:
                     pass
+                except Exception as e:
+                    logger.exception("fail to make dir2")
+        except Exception as e:
+            logger.exception("fail to make dir")
         with h5py.File(os.path.join(directory, 'sample.h5'), 'w') as f:
             f.create_dataset('board', data=board, dtype=np.float32)
             f.create_dataset('policy_target', data=policy_target, dtype=np.float32)

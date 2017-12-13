@@ -11,7 +11,7 @@ VALIDATION_SPLIT = conf['VALIDATION_SPLIT']
 
 
 class SelfPlayWorker(Process):
-    def __init__(self, gpuid, forever=False):
+    def __init__(self, gpuid, forever=True):
         Process.__init__(self, name='SelfPlayProcessor')
         self._gpuid = gpuid
         self._forever = forever
