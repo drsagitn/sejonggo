@@ -84,19 +84,25 @@ def main():
     #with concurrent.futures.ThreadPoolExecutor(len(gpus)) as executor:
     #    executor.submit(train_with_gpu, gpus[0])
 
-    workers = list()
-    #workers.append(TrainWorker(0))
+    print(statistic("games", 200))
+    #clean_up("self_play_data", 11)
+    #print(statistic("self_play_data", 200))
+    # logger.info("Clean up self-play folder")
+    # clean_up("self_play_data")
+    #
+    # workers = list()
+    # #workers.append(TrainWorker(0))
+    # workers.append(SelfPlayWorker(0))
+    # workers.append(SelfPlayWorker(1))
+    # start = datetime.datetime.now()
+    # for worker in workers:
+    #     worker.start()
+    #
+    # for worker in workers:
+    #     worker.join()
+    # stop = datetime.datetime.now()
+    # print("Total time: %s", (stop - start).seconds)
 
-    workers.append(SelfPlayWorker(0))
-    workers.append(SelfPlayWorker(1))
-    start = datetime.datetime.now()
-    for worker in workers:
-        worker.start()
-
-    for worker in workers:
-        worker.join()
-    stop = datetime.datetime.now()
-    print("Total time: %s", (stop - start).seconds)
 
 
 
