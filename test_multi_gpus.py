@@ -10,6 +10,7 @@
 # import math
 from train_worker import *
 from selfplay_worker import *
+from evaluate_worker import *
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -84,24 +85,29 @@ def main():
     #with concurrent.futures.ThreadPoolExecutor(len(gpus)) as executor:
     #    executor.submit(train_with_gpu, gpus[0])
 
-    print(statistic("games", 200))
+    # print(statistic("games", 200))
     #clean_up("self_play_data", 11)
     #print(statistic("self_play_data", 200))
     # logger.info("Clean up self-play folder")
     # clean_up("self_play_data")
     #
-    # workers = list()
+    workers = list()
     # #workers.append(TrainWorker(0))
-    # workers.append(SelfPlayWorker(0))
+    workers.append(SelfPlayWorker(0, forever=False))
+    workers.append(SelfPlayWorker(1, forever=False))
+    workers.append(SelfPlayWorker(2, forever=False))
+    workers.append(SelfPlayWorker(3, forever=False))
+    # workers.append(EvaluateWorker(0, forever=False))
     # workers.append(SelfPlayWorker(1))
-    # start = datetime.datetime.now()
-    # for worker in workers:
-    #     worker.start()
-    #
-    # for worker in workers:
-    #     worker.join()
-    # stop = datetime.datetime.now()
-    # print("Total time: %s", (stop - start).seconds)
+
+    start = datetime.datetime.now()
+    for worker in workers:
+        worker.start()
+
+    for worker in workers:
+        worker.join()
+    stop = datetime.datetime.now()
+    print("Total time:", (stop - start).seconds)
 
 
 
