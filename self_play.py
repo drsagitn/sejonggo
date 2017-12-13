@@ -445,6 +445,7 @@ def save_game_data(model_name, game_n, game_data):
 
 def save_self_play_data(model_name, game_no, game_data):
     winner = game_data['winner']
+    logger.debug("Saving self-play game %s, num move %s", game_no, len(game_data['moves']))
     for move_data in game_data['moves']:
         board = move_data['board']
         policy_target = move_data['policy']
