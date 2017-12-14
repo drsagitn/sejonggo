@@ -24,6 +24,7 @@ DIRICHLET_ALPHA = conf['DIRICHLET_ALPHA']
 DIRICHLET_EPSILON = conf['DIRICHLET_EPSILON']
 RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
 RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
+SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 Cpuct = 1
 
 def show_tree(x, y, tree, indent=''):
@@ -335,7 +336,7 @@ def model_self_play(model):
     current_resign = None
     min_values = []
     for game in games:
-        directory = os.path.join("self_play_data", model.name, "game_%05d" % game)
+        directory = os.path.join(SELF_PLAY_DATA, model.name, "game_%05d" % game)
         if os.path.isdir(directory):
             continue
         os.makedirs(directory)
@@ -346,8 +347,7 @@ def model_self_play(model):
             resign = None
 
         start = datetime.datetime.now()
-        game_data = play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True,
-                              resign_model1=resign, resign_model2=resign)
+        game_data = play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True, resign_model1=resign, resign_model2=resign)
         stop = datetime.datetime.now()
 
         # If we did not use resignation, we had the result towards resign value.
@@ -445,20 +445,20 @@ def save_game_data(model_name, game_n, game_data):
 
 def save_self_play_data(model_name, game_no, game_data):
     winner = game_data['winner']
-    logger.debug("Saving self-play game %s, num move %s", game_no, len(game_data['moves']))
+    logger.debug("Saving self-play game %s, num move %s, result %s", game_no, len(game_data['moves']), game_data['winner_string'])
     for move_data in game_data['moves']:
         board = move_data['board']
         policy_target = move_data['policy']
         player = move_data['player']
         value_target = 1 if winner == player else -1
         move = move_data['move_n']
-        directory = os.path.join("self_play_data", model_name, "game_%05d" % game_no, "move_%03d" % move)
+        directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game_no, "move_%03d" % move)
         try:
             os.makedirs(directory)
         except OSError:
             while True:
                 game_no += 1
-                directory = os.path.join("self_play_data", model_name, "game_%05d" % game_no, "move_%03d" % move)
+                directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game_no, "move_%03d" % move)
                 try:
                     os.makedirs(directory)
                     break

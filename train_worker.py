@@ -15,39 +15,45 @@ BATCH_SIZE = conf['TRAIN_BATCH_SIZE']
 EPOCHS_PER_SAVE = conf['EPOCHS_PER_SAVE']
 NUM_WORKERS = conf['NUM_WORKERS']
 VALIDATION_SPLIT = conf['VALIDATION_SPLIT']
+SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 
 
 class TrainWorker(Process):
-    def __init__(self, gpuid, queue=None):
+    def __init__(self, gpuid, forever=False):
         Process.__init__(self, name='ModelProcessor')
         self._gpuid = gpuid
-        self._queue = queue
+        self._forever = forever
         self.data_dir = ""
-        self.all_data_file_names = []
+        self.self_play_games = 0
+        self.model = None
+
+    def load_model(self):
+        logger.info("Loading latest model...")
+        self.model = model = load_latest_model()
+        logger.info("Loaded latest model %s", model.name)
+        self.data_dir = os.path.join(SELF_PLAY_DATA, model.name)
+        self.self_play_games = len(os.listdir(self.data_dir)) if os.path.isdir(self.data_dir) else 0
 
     def run(self):
         # set environment
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
-        logger.info('cuda_visible_device %s', os.environ["CUDA_VISIBLE_DEVICES"])
+        logger.info('CUDA_VISIBLE_DEVICES %s', os.environ["CUDA_VISIBLE_DEVICES"])
 
+        self.load_model()
         while True:
-            # load models
-            logger.info("Loading latest model...")
-            model = load_latest_model()
-            logger.info("Loaded latest model %s", model.name)
-            self.data_dir = os.path.join("self_play_data", model.name)
-            logger.debug("data dir %s", self.data_dir)
-
-            if os.path.isdir(self.data_dir) and len(os.listdir(self.data_dir)) >= conf['N_GAMES']:  # self-play finished their work and generated enough data
-                self.all_data_file_names = self.get_file_names_data_dir()
-                break
+            if self.self_play_games >= conf['N_GAMES']:  # self-play finished and generated enough data
+                self.train(self.model)
             else:
-                logger.info("Sleep %s seconds to wait for self-play to generate %s games. Current generated %s games",
-                            conf['SLEEP_SECONDS'], conf['N_GAMES'], len(os.listdir(self.data_dir)))
-                time.sleep(conf['SLEEP_SECONDS'])  # wait for self-play
+                logger.info("Not enough self-play games to start training. Current generated %s games, need %s games",
+                            self.self_play_games, conf['N_GAMES'])
+                if self._forever:
+                    logger.info("Sleep %s seconds to wait for self-play", conf['SLEEP_SECONDS'])
+                    time.sleep(conf['SLEEP_SECONDS'])  # wait for self-play
+            if not self._forever:
+                break
+            self.load_model()
 
-        self.train(model)
         K.clear_session()
 
     def train(self, model, epochs=None):
@@ -62,10 +68,11 @@ class TrainWorker(Process):
                                   write_grads=False)
         nan_callback = TerminateOnNaN()
 
+        all_data_file_names = self.get_file_names_data_dir()
         for epoch in tqdm.tqdm(range(epochs), desc="Epochs"):
             values = []
             for worker in tqdm.tqdm(range(NUM_WORKERS), desc="Iteration"):
-                files = sample(self.all_data_file_names, BATCH_SIZE)  # RANDOM because we use SGD (Stochastic Gradient Decent)
+                files = sample(all_data_file_names, BATCH_SIZE)  # RANDOM because we use SGD (Stochastic Gradient Decent)
 
                 X = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
                 policy_y = np.zeros((BATCH_SIZE, 1))

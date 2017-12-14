@@ -16,3 +16,5 @@ models/
 *.h5
 
 *.log
+
+eval_games/model_3/

@@ -5,18 +5,10 @@ from train import train
 from conf import conf
 from evaluator import evaluate
 from __init__ import __version__
+from app_log import setup_logging
+from utils import init_directories
 
 
-
-def init_directories():
-    try:
-        os.mkdir(conf['MODEL_DIR'])
-    except:
-        pass
-    try:
-        os.mkdir(conf['LOG_DIR'])
-    except:
-        pass
 
 def main():
     print("Starting run (v{})".format(__version__))

@@ -11,6 +11,7 @@
 from train_worker import *
 from selfplay_worker import *
 from evaluate_worker import *
+from evaluator import promote_best_model
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -93,25 +94,29 @@ def main():
     #
     workers = list()
     # #workers.append(TrainWorker(0))
-    workers.append(SelfPlayWorker(0, forever=False))
-    workers.append(SelfPlayWorker(1, forever=False))
-    workers.append(SelfPlayWorker(2, forever=False))
-    workers.append(SelfPlayWorker(3, forever=False))
-    # workers.append(EvaluateWorker(0, forever=False))
-    # workers.append(SelfPlayWorker(1))
+    # workers.append(SelfPlayWorker(0, forever=False))
+    # workers.append(SelfPlayWorker(1, forever=False))
+    # workers.append(SelfPlayWorker(2, forever=False))
+    # workers.append(SelfPlayWorker(3, forever=False))
 
+    #workers.append(TrainWorker(0, forever=False))
     start = datetime.datetime.now()
-    for worker in workers:
-        worker.start()
+    # for worker in workers:
+    #     worker.start()
+    # for worker in workers:
+    #     worker.join()
 
-    for worker in workers:
+    workers2 = list()
+    workers2.append(EvaluateWorker(0))
+    for worker in workers2:
+        worker.start()
+    for worker in workers2:
         worker.join()
+
+    promote_best_model()
+
     stop = datetime.datetime.now()
     print("Total time:", (stop - start).seconds)
-
-
-
-
 
 if __name__ == "__main__":
     main()

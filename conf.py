@@ -8,6 +8,8 @@ conf = {
     'SHOW_END_GAME': False,
     'REPORT_PERIOD': 200,
     'GAMES_DIR': 'games',
+    'EVAL_DIR': 'eval_games',
+    'SELF_PLAY_DIR': 'self_play_data',
 
     ### MODEL ###
     'N_RESIDUAL_BLOCKS': 20,  # Size of the tower of residual blocks, 20 for small model, 40 for alphagozero full size
@@ -35,7 +37,7 @@ conf = {
 
     ### EVALUATOR ###
     'EVALUATE_N_GAMES': 100,  # The number of games to test on to elect new best model, 400 in paper
-    'EVALUATE_MARGIN': .5 + 1 / sqrt(100),  # Model has to win by that margin to be elected, 55% in paper
+    'EVALUATE_MARGIN': .55,  # Model has to win by that margin to be elected, 55% in paper
     'SGF_ENABLED': True,
 
     ### MCTS

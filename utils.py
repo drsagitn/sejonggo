@@ -2,6 +2,8 @@ from itertools import count
 import sys
 from conf import conf
 import re
+import os
+from tensorflow.python.client import device_lib
 
 spat_patterndict = dict()  # hash(neighborhood_gridcular()) -> spatial id
 N = conf['SIZE']
@@ -110,3 +112,42 @@ def str_coord(c):
         return 'pass'
     row, col = divmod(c - (W+1), W)
     return '%c%d' % (colstr[col], N - row)
+
+
+def init_directories():
+    try:
+        os.mkdir(conf['MODEL_DIR'])
+    except:
+        pass
+    try:
+        os.mkdir(conf['LOG_DIR'])
+    except:
+        pass
+    try:
+        os.mkdir(conf['EVAL_DIR'])
+    except:
+        pass
+    try:
+        os.mkdir(conf['SELF_PLAY_DIR'])
+    except:
+        pass
+
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
+def start_process_list(process_list):
+    for worker in process_list:
+        worker.start()
+
+
+def wait_for_process_list(process_list):
+    for worker in process_list:
+        worker.join()
+
+
+def start_and_wait(process_list):
+    start_process_list(process_list)
+    wait_for_process_list(process_list)
