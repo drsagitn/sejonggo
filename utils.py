@@ -138,16 +138,3 @@ def get_available_gpus():
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 
-def start_process_list(process_list):
-    for worker in process_list:
-        worker.start()
-
-
-def wait_for_process_list(process_list):
-    for worker in process_list:
-        worker.join()
-
-
-def start_and_wait(process_list):
-    start_process_list(process_list)
-    wait_for_process_list(process_list)
