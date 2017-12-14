@@ -93,27 +93,24 @@ def main():
     # clean_up("self_play_data")
     #
     workers = list()
-    # #workers.append(TrainWorker(0))
-    # workers.append(SelfPlayWorker(0, forever=False))
-    # workers.append(SelfPlayWorker(1, forever=False))
-    # workers.append(SelfPlayWorker(2, forever=False))
-    # workers.append(SelfPlayWorker(3, forever=False))
+    workers.append(SelfPlayWorker(0, forever=False))
+    workers.append(SelfPlayWorker(1, forever=False))
+    workers.append(SelfPlayWorker(2, forever=False))
+    workers.append(SelfPlayWorker(3, forever=False))
 
-    #workers.append(TrainWorker(0, forever=False))
     start = datetime.datetime.now()
-    # for worker in workers:
-    #     worker.start()
-    # for worker in workers:
-    #     worker.join()
-
-    workers2 = list()
-    workers2.append(EvaluateWorker(0))
-    for worker in workers2:
+    for worker in workers:
         worker.start()
-    for worker in workers2:
+    for worker in workers:
         worker.join()
 
-    promote_best_model()
+    # workers2 = list()
+    # workers2.append(EvaluateWorker(0))
+    # for worker in workers2:
+    #     worker.start()
+    # for worker in workers2:
+    #     worker.join()
+    # promote_best_model()
 
     stop = datetime.datetime.now()
     print("Total time:", (stop - start).seconds)
