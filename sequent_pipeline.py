@@ -14,15 +14,14 @@ def start_process_list(process_list):
         worker.start()
 
 
-def wait_for_process_list(process_list):
-    for worker in process_list:
-        worker.join()
+# def wait_for_process_list(process_list):
+
 
 
 def start_and_wait(process_list):
     start_process_list(process_list)
-    wait_for_process_list(process_list)
-    
+    # wait_for_process_list(process_list)
+
 
 def main():
     init_directories()
@@ -35,22 +34,24 @@ def main():
         logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)
         for i in range(n_gpu):
             workers.append(SelfPlayWorker(i))
-        start_and_wait(workers)
-        workers.clear()
-
-        # TRAINING PHASE - 1 GPU
-        logger.info("STARTING TRAINING PHASE with 1 GPUs")
-        workers.append(TrainWorker(0))
-        start_and_wait(workers)
-        workers.clear()
-
-        # EVALUATION PHASE - MULTI GPUs
-        logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
-        for i in range(n_gpu):
-            workers.append(EvaluateWorker(i))
-        start_and_wait(workers)
-        promote_best_model()
-        workers.clear()
+        start_process_list(workers)
+        for worker in workers:
+            worker.join()
+        # workers.clear()
+        #
+        # # TRAINING PHASE - 1 GPU
+        # logger.info("STARTING TRAINING PHASE with 1 GPUs")
+        # workers.append(TrainWorker(0))
+        # start_and_wait(workers)
+        # workers.clear()
+        #
+        # # EVALUATION PHASE - MULTI GPUs
+        # logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
+        # for i in range(n_gpu):
+        #     workers.append(EvaluateWorker(i))
+        # start_and_wait(workers)
+        # promote_best_model()
+        # workers.clear()
 
 
 if __name__ == "__main__":
