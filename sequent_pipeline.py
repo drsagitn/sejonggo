@@ -9,20 +9,6 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def start_process_list(process_list):
-    for worker in process_list:
-        worker.start()
-
-
-# def wait_for_process_list(process_list):
-
-
-
-def start_and_wait(process_list):
-    start_process_list(process_list)
-    # wait_for_process_list(process_list)
-
-
 def main():
     init_directories()
     gpus = get_available_gpus()
@@ -34,7 +20,8 @@ def main():
         logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)
         for i in range(n_gpu):
             workers.append(SelfPlayWorker(i))
-        start_process_list(workers)
+        for worker in workers:
+            worker.start()
         for worker in workers:
             worker.join()
         # workers.clear()
