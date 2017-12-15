@@ -4,7 +4,7 @@ import os
 import h5py
 import numpy as np
 from keras.callbacks import TensorBoard, TerminateOnNaN
-from keras.utils.training_utils import multi_gpu_model
+from keras.utils import multi_gpu_model
 from random import sample
 from conf import conf
 import tqdm
@@ -17,7 +17,7 @@ EPOCHS_PER_SAVE = conf['EPOCHS_PER_SAVE']
 NUM_WORKERS = conf['NUM_WORKERS']
 VALIDATION_SPLIT = conf['VALIDATION_SPLIT']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
-
+INIT_LR = 5e-3
 
 class TrainWorker(Process):
     def __init__(self, gpuid, forever=False):
@@ -31,9 +31,9 @@ class TrainWorker(Process):
 
     def load_model(self):
         logger.info("Loading latest model...")
-        self.model = model = load_latest_model()
-        logger.info("Loaded latest model %s", model.name)
-        self.data_dir = os.path.join(SELF_PLAY_DATA, model.name)
+        self.model = load_latest_model()
+        logger.info("Loaded latest model %s", self.model.name)
+        self.data_dir = os.path.join(SELF_PLAY_DATA, self.model.name)
         self.self_play_games = len(os.listdir(self.data_dir)) if os.path.isdir(self.data_dir) else 0
 
     def run(self):
@@ -62,7 +62,7 @@ class TrainWorker(Process):
         logger.info("Training with %s GPUs", self.n_gpu)
         model = multi_gpu_model(model, gpus=self.n_gpu)
         all_data_file_names = self.get_file_names_data_dir()
-        tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], new_name),
+        tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], "multi_gpu_model"),
                                   histogram_freq=conf['HISTOGRAM_FREQ'], batch_size=BATCH_SIZE, write_graph=False,
                                   write_grads=False)
         nan_callback = TerminateOnNaN()
@@ -81,6 +81,9 @@ class TrainWorker(Process):
                 value_y[j] = policy
 
         fake_epoch = 1  # For tensorboard
+        opt = SGD(lr=INIT_LR, momentum=0.9)
+        model.compile(loss=loss, optimizer=opt,
+                      metrics=["accuracy"])
         model.fit(X, [value_y, policy_y],
                   initial_epoch=fake_epoch,
                   epochs=fake_epoch + 1,
