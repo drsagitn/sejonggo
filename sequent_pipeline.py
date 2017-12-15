@@ -1,4 +1,4 @@
-from utils import get_available_gpus, init_directories
+from utils import init_directories
 from evaluator import promote_best_model
 from selfplay_worker import *
 from train_worker import *
@@ -11,34 +11,32 @@ logger = logging.getLogger(__name__)
 
 def main():
     init_directories()
-    gpus = get_available_gpus()
-    n_gpu = len(gpus)
+    n_gpu = conf['N_GPU']
 
-    workers = list()
-    while True:
-        # SELF-PLAY PHASE - MULTI GPUs
-        logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)
-        for i in range(n_gpu):
-            workers.append(SelfPlayWorker(i))
-        for worker in workers:
-            worker.start()
-        for worker in workers:
-            worker.join()
-        # workers.clear()
-        #
-        # # TRAINING PHASE - 1 GPU
-        # logger.info("STARTING TRAINING PHASE with 1 GPUs")
-        # workers.append(TrainWorker(0))
-        # start_and_wait(workers)
-        # workers.clear()
-        #
-        # # EVALUATION PHASE - MULTI GPUs
-        # logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
-        # for i in range(n_gpu):
-        #     workers.append(EvaluateWorker(i))
-        # start_and_wait(workers)
-        # promote_best_model()
-        # workers.clear()
+
+    # while True:
+    # SELF-PLAY PHASE - MULTI GPUs
+    logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)
+    workers = [SelfPlayWorker(i) for i in range(n_gpu)]
+    for p in workers: p.start()
+    for p in workers: p.join()
+    workers.clear()
+
+    # # TRAINING PHASE - 1 GPU
+    logger.info("STARTING TRAINING PHASE with 1 GPUs")
+    workers.append(TrainWorker(0))
+    for p in workers: p.start()
+    for p in workers: p.join()
+    workers.clear()
+
+    # EVALUATION PHASE - MULTI GPUs
+    logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
+    for i in range(n_gpu):
+        workers.append(EvaluateWorker(i))
+    for p in workers: p.start()
+    for p in workers: p.join()
+    promote_best_model()
+    workers.clear()
 
 
 if __name__ == "__main__":
