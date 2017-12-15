@@ -13,7 +13,6 @@ def main():
     init_directories()
     n_gpu = conf['N_GPU']
 
-
     # while True:
     # SELF-PLAY PHASE - MULTI GPUs
     logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)

@@ -10,7 +10,7 @@ conf = {
     'GAMES_DIR': 'games',
     'EVAL_DIR': 'eval_games',
     'SELF_PLAY_DIR': 'self_play_data',
-    'N_GPUS': 4,
+    'N_GPU': 4,
 
     ### MODEL ###
     'N_RESIDUAL_BLOCKS': 20,  # Size of the tower of residual blocks, 20 for small model, 40 for alphagozero full size
