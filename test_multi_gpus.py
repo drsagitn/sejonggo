@@ -20,7 +20,7 @@ def main():
     # workers.clear()
 
     model = load_best_model()
-    train_multi_gpus(model)
+    train_multi_gpus(model, n_gpu=n_gpu)
 
 
 
