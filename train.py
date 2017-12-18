@@ -71,26 +71,36 @@ def train(model, game_model_name, epochs=None):
     model.name = new_name.split('.')[0]
     model.save(os.path.join(conf['MODEL_DIR'], new_name))
 
-def train_multi_gpus2():
-    num_samples = 1000
-    height = 224
-    width = 224
-    num_classes = 1000
-    with tf.device('/cpu:0'):
-        model = Xception(weights=None,
-                         input_shape=(height, width, 3),
-                         classes=num_classes)
-    parallel_model = multi_gpu_model(model, gpus=8)
-    parallel_model.compile(loss='categorical_crossentropy',
-                           optimizer='rmsprop')
 
-    x = np.random.random((num_samples, height, width, 3))
-    y = np.random.random((num_samples, num_classes))
-    parallel_model.fit(x, y, epochs=20, batch_size=256)
+def train_multi_gpus2():
+    with tf.device('/cpu:0'):
+        model = load_best_model()
+    all_data_file_names = get_file_names_data_dir(os.path.join(SELF_PLAY_DATA, model.name))
+    parallel_model = multi_gpu_model(model, gpus=4)
+    opt = SGD(lr=INIT_LR, momentum=0.9)
+    parallel_model.compile(loss=loss,
+                           optimizer=opt)
+
+    x = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
+    policy_y = np.zeros((BATCH_SIZE, 1))
+    value_y = np.zeros((BATCH_SIZE, SIZE * SIZE + 1))
+    files = sample(all_data_file_names, BATCH_SIZE)
+    for j, filename in enumerate(files):
+        with h5py.File(filename) as f:
+            board = f['board'][:]
+            policy = f['policy_target'][:]
+            value_target = f['value_target'][()]
+            x[j] = board
+            policy_y[j] = value_target
+            value_y[j] = policy
+    y = [value_y, policy_y]
+    parallel_model.fit(x, y, epochs=5, batch_size=32)
     model.save('my_model.h5')
 
-def train_multi_gpus(model, epochs=None, n_gpu=1):
+def train_multi_gpus(epochs=None, n_gpu=1):
     logger.info("Training with %s GPUs", n_gpu)
+    with tf.device('/cpu:0'):
+        model = load_best_model()
     all_data_file_names = get_file_names_data_dir(os.path.join(SELF_PLAY_DATA, model.name))
     model = multi_gpu_model(model, gpus=n_gpu)
     tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], "multi_gpu_model"),

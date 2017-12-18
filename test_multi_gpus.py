@@ -19,8 +19,8 @@ def main():
     # for p in workers: p.join()
     # workers.clear()
 
-    model = load_best_model()
-    train_multi_gpus(model, n_gpu=n_gpu)
+
+    train_multi_gpus(n_gpu=n_gpu)
 
 
 
