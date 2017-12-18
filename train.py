@@ -101,38 +101,43 @@ def train_multi_gpus(epochs=None, n_gpu=1):
     logger.info("Training with %s GPUs", n_gpu)
     with tf.device('/cpu:0'):
         model = load_best_model()
+    base_name, index = model.name.split('_')
+    new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
     all_data_file_names = get_file_names_data_dir(os.path.join(SELF_PLAY_DATA, model.name))
-    model = multi_gpu_model(model, gpus=n_gpu)
+    pmodel = multi_gpu_model(model, gpus=n_gpu)
     tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], "multi_gpu_model"),
                               histogram_freq=conf['HISTOGRAM_FREQ'], batch_size=BATCH_SIZE, write_graph=False,
                               write_grads=False)
     nan_callback = TerminateOnNaN()
-    files = sample(all_data_file_names, BATCH_SIZE)  # RANDOM because we use SGD (Stochastic Gradient Decent)
+    for epoch in tqdm.tqdm(range(epochs), desc="Epochs"):
+        for worker in tqdm.tqdm(range(NUM_WORKERS), desc="Iteration"):
+            files = sample(all_data_file_names, BATCH_SIZE)  # RANDOM because we use SGD (Stochastic Gradient Decent)
 
-    X = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
-    policy_y = np.zeros((BATCH_SIZE, 1))
-    value_y = np.zeros((BATCH_SIZE, SIZE * SIZE + 1))
-    for j, filename in enumerate(files):
-        with h5py.File(filename) as f:
-            board = f['board'][:]
-            policy = f['policy_target'][:]
-            value_target = f['value_target'][()]
-            X[j] = board
-            policy_y[j] = value_target
-            value_y[j] = policy
+            X = np.zeros((BATCH_SIZE, SIZE, SIZE, 17))
+            policy_y = np.zeros((BATCH_SIZE, 1))
+            value_y = np.zeros((BATCH_SIZE, SIZE * SIZE + 1))
+            for j, filename in enumerate(files):
+                with h5py.File(filename) as f:
+                    board = f['board'][:]
+                    policy = f['policy_target'][:]
+                    value_target = f['value_target'][()]
+                    X[j] = board
+                    policy_y[j] = value_target
+                    value_y[j] = policy
 
-    fake_epoch = 1  # For tensorboard
-    opt = SGD(lr=INIT_LR, momentum=0.9)
-    model.compile(loss=loss, optimizer=opt,
-                  metrics=["accuracy"])
-    model.fit(X, [value_y, policy_y],
-              initial_epoch=fake_epoch,
-              epochs=fake_epoch + 1,
-              validation_split=VALIDATION_SPLIT,  # Needed for TensorBoard histograms and gradi
-              callbacks=[tf_callback, nan_callback],
-              verbose=0,
-              )
-    model.save(os.path.join(conf['MODEL_DIR'], "multi_gpu_model"))
+            fake_epoch = epoch * NUM_WORKERS + worker  # used as initial_epoch, epochs is to be understood as "final epoch". The model is trained until the epoch of index epochs is reached.
+            opt = SGD(lr=INIT_LR, momentum=0.9)
+            pmodel.compile(loss=loss, optimizer=opt,
+                          metrics=["accuracy"])
+            pmodel.fit(X, [value_y, policy_y],
+                      initial_epoch=fake_epoch,
+                      epochs=fake_epoch + 1,
+                      validation_split=VALIDATION_SPLIT,  # Needed for TensorBoard histograms and gradi
+                      callbacks=[tf_callback, nan_callback],
+                      verbose=1,
+                      )
+
+    model.save(os.path.join(conf['MODEL_DIR'], new_name))
     logger.info("Finished training with multi gpus")
 
 
