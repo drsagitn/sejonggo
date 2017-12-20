@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def main():
     init_directories()
     n_gpu = conf['N_GPU']
-    create_initial_model(name="model_1")
+    create_initial_model(name="model_1", self_play=False)
 
     while True:
         # SELF-PLAY PHASE - MULTI GPUs

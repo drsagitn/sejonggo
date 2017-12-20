@@ -86,7 +86,7 @@ def build_model(name):
     return model
 
 
-def create_initial_model(name):
+def create_initial_model(name, self_play=True):
     full_filename = os.path.join(conf['MODEL_DIR'], name) + ".h5"
     if os.path.isfile(full_filename):
         model = load_model(full_filename, custom_objects={'loss': loss})
@@ -102,8 +102,9 @@ def create_initial_model(name):
     tf_callback.on_epoch_end(0)
     tf_callback.on_train_end(0)
 
-    from self_play import self_play
-    self_play(model, n_games=conf['N_GAMES'], mcts_simulations=conf['MCTS_SIMULATIONS'])
+    if self_play:
+        from self_play import self_play
+        self_play(model, n_games=conf['N_GAMES'], mcts_simulations=conf['MCTS_SIMULATIONS'])
     model.save(full_filename)
     best_filename = os.path.join(conf['MODEL_DIR'], 'best_model.h5')
     model.save(best_filename)
