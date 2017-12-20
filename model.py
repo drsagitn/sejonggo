@@ -111,7 +111,7 @@ def create_initial_model(name):
 
 
 def load_latest_model():
-    logger.debug("Loading latest model...")
+    logger.info("Loading latest model...")
     index = -1
     model_filename = None
     for filename in os.listdir(conf['MODEL_DIR']):
@@ -125,11 +125,17 @@ def load_latest_model():
             continue
     logger.debug("Keras load %s", model_filename)
     model = load_model(os.path.join(conf['MODEL_DIR'], model_filename), custom_objects={'loss': loss})
-    logger.debug("Keras done")
-    print("Loaded latest model", model_filename)
+    logger.debug("Loaded latest model", model.name)
     return model
 
 
 def load_best_model():
+    logger.info("Loading best model...")
     model = load_model(os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL']), custom_objects={'loss': loss})
+    return model
+
+
+def load_model_by_name(name):
+    logger.info("Loading latest model %s ...", name)
+    model = load_model(os.path.join(conf['MODEL_DIR'], name), custom_objects={'loss': loss})
     return model
