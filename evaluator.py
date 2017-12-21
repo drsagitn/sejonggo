@@ -64,13 +64,11 @@ def eval_statistic():
 
 
 def promote_best_model(cleanup=True):
-    result = eval_statistic()
+    result = eval_statistic() # should be the result of 1 latest model => clean up after statistic
     logger.info('Evaluation result: %s', result)
-    best_model = load_best_model()
-    _, best_index = best_model.name.split('_')
     for model_name in result.keys():
         _, index = model_name.split('_')
-        if index > best_index and result[model_name] > conf['EVALUATE_MARGIN']:
+        if result[model_name] > conf['EVALUATE_MARGIN']:
             save_as_best_model(model_name)
             logger.info('We have new best model %s', model_name)
             if cleanup:

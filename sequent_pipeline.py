@@ -1,7 +1,7 @@
 from utils import init_directories
 from evaluator import promote_best_model
 from selfplay_worker import *
-from train import *
+from train_worker import *
 from evaluate_worker import *
 import logging
 from app_log import setup_logging
@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 def main():
     init_directories()
     n_gpu = conf['N_GPU']
-    create_initial_model(name="model_1", self_play=False)
 
     while True:
         # SELF-PLAY PHASE - MULTI GPUs
@@ -24,7 +23,9 @@ def main():
 
         # # TRAINING PHASE - MULTI GPUs
         logger.info("STARTING TRAINING PHASE with %s GPUs", n_gpu)
-        train_by_multi_gpus(n_gpu)
+        trainer = TrainWorker([i for i in range(n_gpu)])
+        trainer.start()
+        trainer.join()
 
         # EVALUATION PHASE - MULTI GPUs
         logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)

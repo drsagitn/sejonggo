@@ -8,7 +8,8 @@ import tqdm
 import logging
 from app_log import setup_logging
 from keras.utils import multi_gpu_model
-from model import *
+from model import load_latest_model, loss, SGD
+
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -72,8 +73,12 @@ def train(model, game_model_name, epochs=None):
 
 
 def train_by_multi_gpus(n_gpu=1, epochs=None):
+    import tensorflow as tf
     logger.info("Training with %s GPUs", n_gpu)
-    with tf.device('/cpu:0'):
+    if n_gpu > 1:
+        with tf.device('/cpu:0'):
+            model = load_latest_model()
+    else:
         model = load_latest_model()
 
     base_name, index = model.name.split('_')
@@ -85,9 +90,12 @@ def train_by_multi_gpus(n_gpu=1, epochs=None):
                               write_grads=False)
     nan_callback = TerminateOnNaN()
 
-    pmodel = multi_gpu_model(model, gpus=n_gpu)
-    opt = SGD(lr=1e-2, momentum=0.9)
-    pmodel.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
+    if n_gpu > 1:
+        pmodel = multi_gpu_model(model, gpus=n_gpu)
+        opt = SGD(lr=1e-2, momentum=0.9)
+        pmodel.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
+    else:
+        pmodel = model
 
     if epochs is None:
         epochs = EPOCHS_PER_SAVE

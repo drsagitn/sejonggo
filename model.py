@@ -112,7 +112,6 @@ def create_initial_model(name, self_play=True):
 
 
 def load_latest_model():
-    logger.info("Loading latest model...")
     index = -1
     model_filename = None
     for filename in os.listdir(conf['MODEL_DIR']):
@@ -124,19 +123,28 @@ def load_latest_model():
                 index = i
         except:
             continue
-    logger.debug("Keras load %s", model_filename)
+
+    logger.debug("Loading latest model %s...", model_filename)
     model = load_model(os.path.join(conf['MODEL_DIR'], model_filename), custom_objects={'loss': loss})
-    logger.debug("Loaded latest model", model.name)
+    logger.debug("Loaded latest model %s", model.name)
+    if model_filename.split('.')[0] != model.name:
+        logger.warning(">>>>>>>> Inconsistent model name, should check!!! <<<<<<<<<")
     return model
 
 
 def load_best_model():
-    logger.info("Loading best model...")
-    model = load_model(os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL']), custom_objects={'loss': loss})
+    logger.debug("Loading best model...")
+    best_model_path = os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL'])
+    if os.path.isfile(best_model_path):
+        model = load_model(best_model_path, custom_objects={'loss': loss})
+    else:
+        logger.warning("Found no best model. Initializing new model...")
+        model = create_initial_model(name="model_1", self_play=False)
+    logger.debug("Loaded best model %s", model.name)
     return model
 
 
 def load_model_by_name(name):
-    logger.info("Loading latest model %s ...", name)
+    logger.debug("Loading latest model %s ...", name)
     model = load_model(os.path.join(conf['MODEL_DIR'], name), custom_objects={'loss': loss})
     return model

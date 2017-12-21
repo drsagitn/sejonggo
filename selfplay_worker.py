@@ -18,8 +18,6 @@ class SelfPlayWorker(Process):
         logger.info('cuda_visible_device %s', os.environ["CUDA_VISIBLE_DEVICES"])
 
         name = ""
-        # load models
-        logger.info("Loading best model...")
         model = load_best_model()
         logger.info("Loaded %s", model.name)
         while True:
