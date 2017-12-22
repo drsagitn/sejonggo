@@ -124,6 +124,7 @@ def train_by_multi_gpus(n_gpu=1, epochs=None):
                       callbacks=[tf_callback, nan_callback],
                       verbose=0, batch_size=BATCH_SIZE)
 
+    model.name = new_name.split('.')[0]
     model.save(os.path.join(conf['MODEL_DIR'], new_name))
     logger.info("Finished training with multi GPUs. New model %s saved", new_name)
     return model
