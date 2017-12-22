@@ -3,7 +3,7 @@ from self_play import *
 from tqdm import tqdm
 import time
 from pathlib import Path
-
+from evaluator import promote_best_model
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -13,10 +13,11 @@ EVALUATE_MARGIN = conf['EVALUATE_MARGIN']
 EVAL_DIR = conf['EVAL_DIR']
 
 class EvaluateWorker(Process):
-    def __init__(self, gpuid, forever=False):
+    def __init__(self, gpuid, forever=False, task="evaluate"):
         Process.__init__(self, name='EvaluateProcessor')
         self._gpuid = gpuid
         self._forever = forever
+        self._task = task
 
     def load_model(self):
         best_model = load_best_model()
@@ -31,6 +32,9 @@ class EvaluateWorker(Process):
         Path(filepath).touch()  # can use os.mknod(filepath) but will throw exception if file existed
 
     def run(self):
+        if self._task == "promote_best_model":
+            promote_best_model()
+            return
         # set environment
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)

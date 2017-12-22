@@ -35,12 +35,14 @@ def main():
             STARTED = True
             # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
-            for i in range(n_gpu):
-                workers.append(EvaluateWorker(i))
+            workers = [EvaluateWorker(i) for i in range(n_gpu)]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
-            promote_best_model()
+
+            promoter = EvaluateWorker(0, task="promote_best_model")
+            promoter.start()
+            promoter.join()
 
 
 if __name__ == "__main__":
