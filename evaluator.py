@@ -69,8 +69,8 @@ def promote_best_model(cleanup=True):
     for model_name in result.keys():
         _, index = model_name.split('_')
         if result[model_name] > conf['EVALUATE_MARGIN']:
-            save_as_best_model(model_name)
             logger.info('We have new best model %s', model_name)
+            save_as_best_model(model_name)
             if cleanup:
                 clean_up_result(result)
             return
@@ -79,7 +79,7 @@ def promote_best_model(cleanup=True):
 
 def save_as_best_model(model_name):
     full_filename = os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL'])
-    model = load_model(conf['MODEL_DIR'], model_name)
+    model = load_model(os.path.join(conf['MODEL_DIR'], model_name, '.h5'))
     model.save(full_filename)
 
 
