@@ -16,7 +16,7 @@ def main():
     STARTED = False
 
     while True:
-        if not STARTED and START_PHASE == "SELF-PLAY":
+        if STARTED or START_PHASE == "SELF-PLAY":
             STARTED = True
             # SELF-PLAY PHASE - MULTI GPUs
             logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", n_gpu)
@@ -24,14 +24,14 @@ def main():
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
-        if not STARTED and START_PHASE == "TRAINING":
+        if STARTED or START_PHASE == "TRAINING":
             STARTED = True
             # # TRAINING PHASE - MULTI GPUs
             logger.info("STARTING TRAINING PHASE with %s GPUs", n_gpu)
             trainer = TrainWorker([i for i in range(n_gpu)])
             trainer.start()
             trainer.join()
-        if not STARTED and START_PHASE == "EVALUATION":
+        if STARTED or START_PHASE == "EVALUATION":
             STARTED = True
             # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", n_gpu)
