@@ -493,7 +493,7 @@ def clean_up(self_play_dir, min_move):
     logger.info("Total removed %s", total)
 
 
-def statistic(self_play_dir,min_move):
+def statistic_all_model(self_play_dir,min_move):
     stat = {}
     for i in range(min_move):
         stat[i] = []
@@ -506,4 +506,20 @@ def statistic(self_play_dir,min_move):
                     stat[num_move].append(game_dir)
             except OSError:
                 pass
+    return stat
+
+
+def statistic_by_model(model_self_play_dir,min_move):
+    stat = {}
+    for i in range(min_move):
+        stat[i] = []
+
+    for game_dir in os.listdir(model_self_play_dir):
+        real_path = os.path.join(model_self_play_dir, game_dir)
+        try:
+            num_move = len(os.listdir(real_path))
+            if num_move < min_move:
+                stat[num_move].append(game_dir)
+        except OSError:
+            pass
     return stat
