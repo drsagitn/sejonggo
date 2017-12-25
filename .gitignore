@@ -17,4 +17,5 @@ models/
 
 *.log
 
-eval_games/model_3/
+eval_games/
+sp_eval_games/
