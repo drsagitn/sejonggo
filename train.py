@@ -8,7 +8,7 @@ import tqdm
 import logging
 from app_log import setup_logging
 from keras.utils import multi_gpu_model
-from model import load_latest_model, loss, SGD
+from model import load_latest_model, loss, SGD, load_best_model
 
 
 setup_logging()
@@ -81,10 +81,13 @@ def train_by_multi_gpus(n_gpu=1, epochs=None):
     else:
         model = load_latest_model()
 
+    with tf.device('/cpu:0'):
+        best_model = load_best_model()
+
     base_name, index = model.name.split('_')
     new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
 
-    all_data_file_names = get_file_names_data_dir(os.path.join(SELF_PLAY_DATA, model.name))
+    all_data_file_names = get_file_names_data_dir(os.path.join(SELF_PLAY_DATA, best_model.name))
     tf_callback = TensorBoard(log_dir=os.path.join(conf['LOG_DIR'], new_name),
                               histogram_freq=conf['HISTOGRAM_FREQ'], batch_size=BATCH_SIZE, write_graph=False,
                               write_grads=False)
