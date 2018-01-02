@@ -87,6 +87,8 @@ def build_model(name):
 
 
 def create_initial_model(name, self_play=True):
+    from utils import init_directories
+    init_directories()
     full_filename = os.path.join(conf['MODEL_DIR'], name) + ".h5"
     if os.path.isfile(full_filename):
         model = load_model(full_filename, custom_objects={'loss': loss})

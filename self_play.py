@@ -163,6 +163,8 @@ def simulate(node, board, model, mcts_batch_size, original_player):
 
 def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model):
     # TODO: make parallelization here, each simulation can be handled by a thread/process/CPU
+    if mcts_simulations is None:
+        mcts_simulations = conf['MCTS_SIMULATIONS']
     for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):
         test_board = np.copy(board)
         original_player = board[0,0,0,-1]

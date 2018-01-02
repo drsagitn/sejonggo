@@ -2,6 +2,8 @@ from random import random
 import numpy as np
 from conf import conf
 
+###### board and game util functions
+
 SIZE = conf['SIZE']
 SWAP_INDEX = [1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14]
 colstr = 'ABCDEFGHJKLMNOPQRST'
@@ -9,7 +11,9 @@ W = SIZE + 2
 
 
 def str_coord(c):
-    if c is None:
+    if c == "resign":
+        return c
+    if SIZE*SIZE == c:
         return 'pass'
     row, col = divmod(c - (W+1), W)
     return '%c%d' % (colstr[col], SIZE - row)
@@ -19,6 +23,12 @@ def index2coord(index):
     y = index // SIZE
     x = index - SIZE * y
     return x, y
+
+def gtpcoord2index(x,y):
+    x -= 1
+    y -= 1
+    index = SIZE * y + x
+    return index
 
 def legal_moves(board):
     # Occupied places
@@ -116,12 +126,15 @@ def take_stones(x, y, board):
     return board
 
 
-def make_play(x, y, board):
-    player = board[0,0,0,-1]
+def make_play(x, y, board, color=None):
+    if color is not None:
+        player = color
+    else:
+        player = board[0,0,0,-1]
     board[:,:,:,2:16] = board[:,:,:,0:14]
     if y != SIZE:
-        assert board[0,y,x,1] == 0
-        assert board[0,y,x,0] == 0
+        #  assert board[0,y,x,1] == 0
+        #  assert board[0,y,x,0] == 0
         board[0,y,x,0] = 1  # Careful here about indices
         board = take_stones(x, y, board)
     else:

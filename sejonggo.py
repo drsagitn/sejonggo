@@ -3,6 +3,10 @@ from __future__ import print_function
 from mcts1.tree_node import TreeNode
 from mcts1.tree_search import *
 from __init__ import __version__
+from players.sejong_player import *
+from gtp_wrapper import run_gtp
+
+
 
 spat_patterndict_file = conf['MSTC_PATTERN_FILE']
 large_patterns_file = conf['LARGE_MCTS_PATTERN_FILE']
@@ -112,33 +116,24 @@ def gtp_io():
 
 if __name__ == "__main__":
     print("Sejong-Go (v{})".format(__version__))
-    if len(sys.argv) < 2:
-        # Default action
-        print('Starting in GTP mode...')
-        gtp_io()
-    elif len(sys.argv) > 2 and sys.argv[2] == "pattern":
-        try:
-            with open(spat_patterndict_file) as f:
-                print('Loading pattern spatial dictionary...', file=sys.stderr)
-                load_spat_patterndict(f)
-            with open(large_patterns_file) as f:
-                print('Loading large patterns...', file=sys.stderr)
-                load_large_patterns(f)
-            print('Done.', file=sys.stderr)
-        except IOError as e:
-            print('Warning: Cannot load pattern files: %s; will be much weaker, consider lowering EXPAND_VISITS 5->2' % (e,), file=sys.stderr)
-    elif sys.argv[1] == "gtp":
-        print('Starting in GTP mode...')
-        gtp_io()
-    # elif sys.argv[1] == "mcbenchmark":
-    #     print(mcbenchmark(20))
-    # elif sys.argv[1] == "tsbenchmark":
-    #     t_start = time.time()
-    #     print_pos(tree_search(TreeNode(pos=empty_position()), N_SIMS, W*W*[0], disp=False).pos)
-    #     print('Tree search with %d playouts took %.3fs with %d threads; speed is %.3f playouts/thread/s' %
-    #           (N_SIMS, time.time() - t_start, multiprocessing.cpu_count(),
-    #            N_SIMS / ((time.time() - t_start) * multiprocessing.cpu_count())))
-    # elif sys.argv[1] == "tsdebug":
-    #     print_pos(tree_search(TreeNode(pos=empty_position()), N_SIMS, W*W*[0], disp=True).pos)
-    else:
-        print('Unknown action', file=sys.stderr)
+    # if len(sys.argv) < 2:
+    # Default action is GTP
+    print('Starting in GTP mode...')
+    run_gtp(SejongPlayer())
+
+    # elif len(sys.argv) > 2 and sys.argv[2] == "pattern":
+    #     try:
+    #         with open(spat_patterndict_file) as f:
+    #             print('Loading pattern spatial dictionary...', file=sys.stderr)
+    #             load_spat_patterndict(f)
+    #         with open(large_patterns_file) as f:
+    #             print('Loading large patterns...', file=sys.stderr)
+    #             load_large_patterns(f)
+    #         print('Done.', file=sys.stderr)
+    #     except IOError as e:
+    #         print('Warning: Cannot load pattern files: %s; will be much weaker, consider lowering EXPAND_VISITS 5->2' % (e,), file=sys.stderr)
+    # elif sys.argv[1] == "gtp":
+    #     print('Starting in GTP mode...')
+    #     gtp_io()
+    # else:
+    #     print('Unknown action', file=sys.stderr)
