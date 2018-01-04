@@ -28,7 +28,10 @@ SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 Cpuct = 1
 
 def show_tree(x, y, tree, indent=''):
-    print('%s Move(%s,%s) p: %s, count: %s' % (indent, x, y, tree['p'], tree['count']))
+    if tree['parent'] is None:
+        print('ROOT p: %s, count: %s' % (tree['p'], tree['count']))
+    elif tree['count'] > 1:
+        print('%s Move(%s,%s) p: %s, count: %s' % (indent, x, y, tree['p'], tree['count']))
     for action, node in tree['subtree'].items():
         x, y = index2coord(action)
         show_tree(x, y, node, indent=indent+'--')
@@ -234,6 +237,7 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
 
 
         index = select_play(policy, board, mcts_simulations, mcts_tree, temperature, current_model)
+        logger.debug("########## player %s play %s", player, index)
         x, y = index2coord(index)
 
         policy_target = np.zeros(SIZE*SIZE + 1)

@@ -1,139 +1,175 @@
-from __future__ import print_function
-
-from mcts1.tree_node import TreeNode
-from mcts1.tree_search import *
+import sys
+from conf import conf
+from play import game_init, index2coord, show_board, coord2index
+from self_play import select_play, make_play, new_tree, show_tree
+from model import load_best_model
+import string
 from __init__ import __version__
-from players.sejong_player import *
-from gtp_wrapper import run_gtp
+import numpy as np
+import logging
+from app_log import setup_logging
+setup_logging()
+logger = logging.getLogger("sejonggo")
+
+COLOR_TO_PLAYER = {'B': 1, 'W': -1}
+SIZE = conf['SIZE']
 
 
+class SejongGoEngine(object):
+    def __init__(self, model, mcts_simulations, board, resign=None, temperature=0, add_noise=False):
+        self.model = model
+        self.mcts_simulations = mcts_simulations
+        self.resign = resign
+        self.temperature = temperature
+        self.board = board
+        self.add_noise = add_noise
+        self.mcts_tree = None
+        self.move = 1
 
-spat_patterndict_file = conf['MSTC_PATTERN_FILE']
-large_patterns_file = conf['LARGE_MCTS_PATTERN_FILE']
+    def set_temperature(self, temperature):
+        self.temperature = temperature
+
+    def play(self, color, x, y, update_tree=True):
+        index = coord2index(x, y)
+        if update_tree:
+            if self.mcts_tree and index in self.mcts_tree['subtree']:
+                self.mcts_tree = self.mcts_tree['subtree'][index]
+                self.mcts_tree['parent'] = None  # Cut the tree
+            else:
+                self.mcts_tree = None
+
+        self.board, player = make_play(x, y, self.board, color)
+        self.move += 1
+        return self.board, player
+
+    def genmove(self, color):
+        policies, values = self.model.predict_on_batch(self.board)
+        policy = policies[0]
+        value = values[0]
+        if self.resign and value <= self.resign:
+            x = 0
+            y = SIZE + 1
+            return x, y, policy, value, self.board, self.player
+
+        if not self.mcts_tree or not self.mcts_tree['subtree']:
+            self.mcts_tree = new_tree(policy, self.board)
+
+        index = select_play(policy, self.board, self.mcts_simulations, self.mcts_tree, self.temperature, self.model)
+        logger.info("Generated index %s", index)
+        x, y = index2coord(index)
+        # show_tree(x, y, self.mcts_tree)
+
+        policy_target = np.zeros(SIZE*SIZE + 1)
+        for _index, d in self.mcts_tree['subtree'].items():
+            policy_target[_index] = d['p']
+
+        self.board, self.player = self.play(color, x, y)
+        return x, y, policy_target, value, self.board, self.player
+
+class GTPEngine(object):
+    def __init__(self):
+        self._komi = 0
+        self.board, self.player = game_init()
+        model = load_best_model()
+        self.sejong_engine = SejongGoEngine(model, conf['MCTS_SIMULATIONS'], self.board)
+        print("GTP engine ready")
+
+    def name(self):
+        return "SejongGo - {} - {} simulations".format(self.sejong_engine.model.name, conf['MCTS_SIMULATIONS'])
+
+    def version(self):
+        return __version__
+
+    def protocol_version(self):
+        return "2"
+
+    def list_commands(self):
+        return ""
+
+    def boardsize(self, size):
+        return ""
+
+    def komi(self, komi):
+        self._komi = komi
+        return ""
+
+    def parse_move(self, move):
+
+        if move == 'pass':
+            x, y = 0, SIZE
+        else:
+            letter = move[0]
+            number = move[1:]
+
+            x = string.ascii_uppercase.index(letter)
+            if x >= 9:
+                x -= 1 # I is a skipped letter
+            y = int(number) - 1
+
+        x, y = x, SIZE - y - 1
+        return x, y
+
+    def print_move(self, x, y):
+        x, y = x, SIZE - y - 1
+
+        if x >= 8:
+            x += 1 # I is a skipped letter
+
+        move = string.ascii_uppercase[x] + str(y + 1)
+        return move
+
+    def play(self, color, move):
+        announced_player = COLOR_TO_PLAYER[color]
+        assert announced_player == self.player
+        x, y = self.parse_move(move)
+        self.board, self.player = self.sejong_engine.play(announced_player, x, y)
+        return ""
+
+    def genmove(self, color):
+        announced_player = COLOR_TO_PLAYER[color]
+        # assert announced_player == self.player
+        # genmove, play and return update board, player
+        x, y, policy_target, value, self.board, self.player = self.sejong_engine.genmove(announced_player)
+
+        move_string = self.print_move(x, y)
+        result = move_string
+        return result
+
+    def clear_board(self):
+        self.board, self.player = game_init()
+        return ""
+
+    def parse_command(self, line):
+        tokens = line.strip().split(" ")
+        command = tokens[0]
+        args = tokens[1:]
+        # try:
+        method = getattr(self, command)
+        result = method(*args)
+        if not result.strip():
+            return "=\n\n"
+        return "= " + result + "\n\n"
+        # except AttributeError:
+        #     return "= Command not found" + "\n\n"
 
 
-def gtp_io():
-    """ GTP interface for our program.  We can play only on the board size
-    which is configured (N), and we ignore color information and assume
-    alternating play! """
-    known_commands = ['boardsize', 'clear_board', 'komi', 'play', 'genmove',
-                      'final_score', 'quit', 'name', 'version', 'known_command',
-                      'list_commands', 'protocol_version', 'tsdebug']
-
-    tree = TreeNode(pos=empty_position())
-    tree.expand()
-    print('Command list:', known_commands)
-    print('Ready for command input!')
+def main():
+    engine = GTPEngine()
+    inpt_fn = input
     while True:
-        try:
-            line = input().strip()
-        except EOFError:
-            break
-        if line == '':
-            continue
-        command = [s.lower() for s in line.split()]
-        if re.match('\d+', command[0]):
-            cmdid = command[0]
-            command = command[1:]
-        else:
-            cmdid = ''
-        owner_map = W*W*[0]
-        ret = ''
-        if command[0] == "boardsize":
-            if int(command[1]) != N:
-                print("Warning: Trying to set incompatible boardsize %s (!= %d)" % (command[1], N), file=sys.stderr)
-                ret = None
-        elif command[0] == "clear_board":
-            tree = TreeNode(pos=empty_position())
-            tree.expand()
-        elif command[0] == "komi":
-            # XXX: can we do this nicer?!
-            tree.pos = Position(board=tree.pos.board, cap=(tree.pos.cap[0], tree.pos.cap[1]),
-                                n=tree.pos.n, ko=tree.pos.ko, last=tree.pos.last, last2=tree.pos.last2,
-                                komi=float(command[1]))
-        elif command[0] == "play":
-            c = parse_coord(command[2])
-            if c is not None:
-                # Find the next node in the game tree and proceed there
-                if tree.children is not None and filter(lambda n: n.pos.last == c, tree.children):
-                    tree = filter(lambda n: n.pos.last == c, tree.children).__next__()
-                else:
-                    # Several play commands in row, eye-filling move, etc.
-                    tree = TreeNode(pos=tree.pos.move(c))
+        inpt = inpt_fn()
+        cmd_list = inpt.split("\n")
+        for cmd in cmd_list:
+            logger.info("<<< " + cmd)
+            result = engine.parse_command(cmd)
+            if result.strip():
+                sys.stdout.write(result)
+                sys.stdout.flush()
+                logger.info("Next turn player:" + str(engine.player))
+                logger.info(">>> " + result)
+                # print(show_board(engine.board))
 
-            else:
-                # Pass move
-                if tree.children[0].pos.last is None:
-                    tree = tree.children[0]
-                else:
-                    tree = TreeNode(pos=tree.pos.pass_move())
-        elif command[0] == "genmove":
-            index = mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model)
-            str_coord(index)
-
-
-            tree = tree_search(tree, conf['N_SIMS'], owner_map)
-            if tree.pos.last is None:
-                ret = 'pass'
-            elif float(tree.w)/tree.v < conf['RESIGN_THRES']:
-                ret = 'resign'
-            else:
-                ret = str_coord(tree.pos.last)
-        elif command[0] == "final_score":
-            score = tree.pos.score()
-            if tree.pos.n % 2:
-                score = -score
-            if score == 0:
-                ret = '0'
-            elif score > 0:
-                ret = 'B+%.1f' % (score,)
-            elif score < 0:
-                ret = 'W+%.1f' % (-score,)
-        elif command[0] == "name":
-            ret = 'Sejong Go Program'
-        elif command[0] == "version":
-            ret = 'v0.1'
-        elif command[0] == "list_commands":
-            ret = '\n'.join(known_commands)
-        elif command[0] == "known_command":
-            ret = 'true' if command[1] in known_commands else 'false'
-        elif command[0] == "protocol_version":
-            ret = '2'
-        elif command[0] == "quit":
-            print('=%s \n\n' % (cmdid,), end='')
-            break
-        else:
-            print('Warning: Ignoring unknown command - %s' % (line,), file=sys.stderr)
-            ret = None
-
-        print_pos(tree.pos, sys.stderr, owner_map)
-        if ret is not None:
-            print('=%s %s\n\n' % (cmdid, ret,), end='')
-        else:
-            print('?%s ???\n\n' % (cmdid,), end='')
-        sys.stdout.flush()
 
 
 if __name__ == "__main__":
-    print("Sejong-Go (v{})".format(__version__))
-    # if len(sys.argv) < 2:
-    # Default action is GTP
-    print('Starting in GTP mode...')
-    run_gtp(SejongPlayer())
-
-    # elif len(sys.argv) > 2 and sys.argv[2] == "pattern":
-    #     try:
-    #         with open(spat_patterndict_file) as f:
-    #             print('Loading pattern spatial dictionary...', file=sys.stderr)
-    #             load_spat_patterndict(f)
-    #         with open(large_patterns_file) as f:
-    #             print('Loading large patterns...', file=sys.stderr)
-    #             load_large_patterns(f)
-    #         print('Done.', file=sys.stderr)
-    #     except IOError as e:
-    #         print('Warning: Cannot load pattern files: %s; will be much weaker, consider lowering EXPAND_VISITS 5->2' % (e,), file=sys.stderr)
-    # elif sys.argv[1] == "gtp":
-    #     print('Starting in GTP mode...')
-    #     gtp_io()
-    # else:
-    #     print('Unknown action', file=sys.stderr)
+    main()
