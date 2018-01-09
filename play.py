@@ -33,6 +33,32 @@ def gtpcoord2index(x,y):
     index = SIZE * y + x
     return index
 
+def get_surrounding(x,y):
+    ret_array = []
+    if y - 1 >= 0:
+        ret_array.append((x, y-1))
+    if x + 1 < SIZE:
+        ret_array.append((x + 1, y))
+    if y + 1 < SIZE:
+        ret_array.append((x, y + 1))
+    if x - 1 >= 0:
+        ret_array.append((x-1, y))
+    return ret_array
+
+def get_liberties(x, y, board, color=None, parent_x=None, parent_y=None):
+    ret_array = []
+    real_board = get_real_board(board)
+    if color is None:
+        color = board[0,0,0,-1]
+    for (a,b) in get_surrounding(x, y):
+        if a == parent_x and b == parent_y: # skip previous node
+            continue
+        if real_board[b,a] == 0:
+            ret_array.append((a,b))
+        elif real_board[b,a] == color:
+            ret_array = list(set(get_liberties(a, b, board, color, x, y) + ret_array))
+    return ret_array
+
 def legal_moves(board):
     # Occupied places
     mask1 = board[0,:,:,0].reshape(-1) != 0
@@ -43,6 +69,26 @@ def legal_moves(board):
     ko_mask = ((board[0,:,:,2] - board[0,:,:,0]))
     if (ko_mask == 1).sum() == 1:
         mask += (ko_mask == 1).reshape(-1)
+
+    #suicide situation
+    suicide_mask = mask.reshape(SIZE, SIZE)
+    real_board = get_real_board(board)
+    player = board[0,0,0,-1]
+    for row in range(SIZE):
+        for col in range(SIZE):
+            if suicide_mask[row][col] == 1:
+                continue  # ignore already invalid move
+            copy_board = np.copy(real_board)
+            copy_board[row, col] = player
+            captured = None
+            for (rs, cs) in get_surrounding(row, col):
+                if player != real_board[rs, cs] and capture_group(cs, rs, copy_board):
+                    captured = 1
+                    break  # if this move capture any surrounding stones, allow it even it is suicide move
+            if captured is not None:
+                continue
+            if capture_group(col, row, real_board):
+                suicide_mask[row][col] = 1
 
     # Pass is always legal
     mask = np.append(mask, 0)
@@ -161,10 +207,16 @@ def take_stones(x, y, board):
 
     return board
 
+def swap_player(board):
+    player = board[0,0,0,-1]
+    board[:, :, :, range(16)] = board[:, :, :, SWAP_INDEX]
+    player = -1 if player == 1 else 1
+    board[:, :, :, -1] = player
+    return player
 
 def make_play(x, y, board, color=None):
-    if color is not None:
-        player = color
+    if color is not None and color != board[0,0,0,-1]:
+        player = swap_player(board)
     else:
         player = board[0,0,0,-1]
     board[:,:,:,2:16] = board[:,:,:,0:14]
@@ -177,9 +229,7 @@ def make_play(x, y, board, color=None):
         # "Skipping", player
         pass
     # swap_players
-    board[:,:,:,range(16)] = board[:,:,:,SWAP_INDEX]
-    player = -1 if player == 1 else 1
-    board[:,:,:,-1] = player
+    swap_player(board)
     return board, player
 
 def _color_adjoint(i, j, color, board):

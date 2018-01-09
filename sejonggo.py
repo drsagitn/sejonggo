@@ -38,9 +38,9 @@ class SejongGoEngine(object):
             else:
                 self.mcts_tree = None
 
-        self.board, player = make_play(x, y, self.board, color)
+        self.board, self.player = make_play(x, y, self.board, color)
         self.move += 1
-        return self.board, player
+        return self.board, self.player
 
     def genmove(self, color):
         policies, values = self.model.predict_on_batch(self.board)
@@ -87,6 +87,10 @@ class GTPEngine(object):
         return ""
 
     def boardsize(self, size):
+        size = int(size)
+        if size != SIZE:
+            raise Exception(
+                "The board size in configuration is {0}x{0} but GTP asked to play {1}x{1}".format(SIZE, size))
         return ""
 
     def komi(self, komi):
@@ -95,8 +99,9 @@ class GTPEngine(object):
 
     def parse_move(self, move):
 
-        if move == 'pass':
+        if move.lower() == 'pass':
             x, y = 0, SIZE
+            return x, y
         else:
             letter = move[0]
             number = move[1:]
@@ -120,7 +125,7 @@ class GTPEngine(object):
 
     def play(self, color, move):
         announced_player = COLOR_TO_PLAYER[color]
-        assert announced_player == self.player
+        # assert announced_player == self.player
         x, y = self.parse_move(move)
         self.board, self.player = self.sejong_engine.play(announced_player, x, y)
         return ""
