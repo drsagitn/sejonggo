@@ -305,18 +305,16 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
     else:
         modelW, modelB = model1, model2
 
-    if player == 0:
-        # black played last
-        bvalue, wvalue = value, last_value
-    else:
-        bvalue, wvalue = last_value, value
-
-
     if conf['SHOW_END_GAME']:
+        if player == -1:
+            # black played last
+            bvalue, wvalue = value, last_value
+        else:
+            bvalue, wvalue = last_value, value
         print("")
-        print("B:%s, W:%s" %(modelB.name, modelW.name))
-        print("Bvalue:%s, Wvalue:%s" %(bvalue, wvalue))
-        show_board(board)
+        print("B:%s, W:%s" % (modelB.name, modelW.name))
+        print("Bvalue:%s, Wvalue:%s" % (bvalue, wvalue))
+        print(show_board(board))
         print("Game played (%s: %s) : %s" % (winner_string, end_reason, datetime.datetime.now() - start))
 
     game_data = {
