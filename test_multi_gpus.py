@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     init_directories()
-    n_gpu = conf['N_GPU']
+    GPUs = conf['GPUs']
     # workers = list()
     # workers.append(TrainWorker([i for i in range(n_gpu)]))
     # for p in workers: p.start()
@@ -20,7 +20,7 @@ def main():
     # workers.clear()
 
 
-    train_multi_gpus(n_gpu=n_gpu)
+    train_multi_gpus(n_gpu=len(GPUs))
 
 
 

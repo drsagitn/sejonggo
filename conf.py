@@ -10,7 +10,7 @@ conf = {
     'SHOW_END_GAME': False,
     'REPORT_PERIOD': 200,
     'GAMES_DIR': 'games',
-    'N_GPU': 4,
+    'GPUs': [0,1,2,3],
 
     ### MODEL ###
     'N_RESIDUAL_BLOCKS': 20,  # Size of the tower of residual blocks, 20 for small model, 40 for alphagozero full size
