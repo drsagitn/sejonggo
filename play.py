@@ -78,15 +78,18 @@ def legal_moves(board):
         for col in range(SIZE):
             if suicide_mask[row][col] == 1:
                 continue  # ignore already invalid move
+            surroundings = get_surrounding(row, col)
+            if len(surroundings) < 4:
+                continue # if there is still any liberties around then this move will valid
             copy_board = np.copy(real_board)
             copy_board[row, col] = player
             captured = None
-            for (rs, cs) in get_surrounding(row, col):
+            for (rs, cs) in surroundings:
                 if player != real_board[rs, cs] and capture_group(cs, rs, copy_board):
                     captured = 1
-                    break  # if this move capture any surrounding stones, allow it even it is suicide move
+                    break
             if captured is not None:
-                continue
+                continue # if this move capture any surrounding stones, allow it even it is suicide move
             if capture_group(col, row, real_board):
                 suicide_mask[row][col] = 1
 
