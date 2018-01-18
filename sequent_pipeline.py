@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 def main():
     init_directories()
-    init_workers()
     GPUs = conf['GPUs']
     START_PHASE = "EVALUATION"
     STARTED = False
