@@ -2,7 +2,7 @@
 import datetime
 import shutil
 from math import sqrt
-
+import threading, queue
 import h5py
 import numpy as np
 import numpy.ma as ma
@@ -17,6 +17,7 @@ from play import (
 from symmetry import random_symmetry_predict
 from random import random
 from model import *
+from play import get_real_board
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -30,7 +31,7 @@ Cpuct = 1
 def show_tree(x, y, tree, indent=''):
     if tree['parent'] is None:
         print('ROOT p: %s, count: %s' % (tree['p'], tree['count']))
-    elif tree['count'] > 1:
+    elif tree['count'] >= 1:
         print('%s Move(%s,%s) p: %s, count: %s' % (indent, x, y, tree['p'], tree['count']))
     for action, node in tree['subtree'].items():
         x, y = index2coord(action)
@@ -95,6 +96,58 @@ def top_n_actions(subtree, top_n):
             max_actions = max_actions[:-1]
     return max_actions
 
+
+def thread_board(dic, board, mcts_batch_size, boards, i):
+    action = dic['action']
+    if dic['node']['subtree'] != {}:
+        # already expanded
+        tmp_node = dic['node']
+        tmp_action = action
+        x, y = index2coord(tmp_action)
+        board, _ = make_play(x, y, board)
+        n = 0
+        while tmp_node['subtree'] != {}:
+            tmp_max_actions = top_n_actions(tmp_node['subtree'], mcts_batch_size)
+            tmp_d = tmp_max_actions[0]
+            tmp_node = tmp_d['node']
+            tmp_action = tmp_d['action']
+            # The node for this action is the leaf, this is where the
+            # update will start, working up the tree
+            dic['node'] = tmp_node
+            x, y = index2coord(tmp_action)
+            n += 1
+            make_play(x, y, board)
+        boards[i] = board
+
+    else:
+        x, y = index2coord(action)
+        make_play(x, y, board)
+        boards[i] = board
+
+
+def thread_subtree(node, policy, v, board, action, original_player):
+    shape = board.shape
+    board = board.reshape([1] + list(shape))
+
+    player = board[0, 0, 0, -1]
+    # Inverse value if we're looking from other player perspective
+    value = v[0] if player == original_player else -v[0]
+
+    subtree = new_subtree(policy, board, node)
+    leaf_node = action['node']
+    leaf_node['subtree'] = subtree
+
+    current_node = leaf_node
+    while True:
+        current_node['count'] += 1
+        current_node['value'] += value
+        current_node['mean_value'] = current_node['value'] / float(current_node['count'])
+        if current_node['parent']:
+            current_node = current_node['parent']
+        else:
+            break
+
+
 def simulate(node, board, model, mcts_batch_size, original_player):
     node_subtree = node['subtree']
     max_actions = top_n_actions(node_subtree, mcts_batch_size)
@@ -105,59 +158,76 @@ def simulate(node, board, model, mcts_batch_size, original_player):
     if selected_node['subtree'] == {}:
         # This is a leaf
         boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
-        for i, dic in enumerate(max_actions):
-            action = dic['action']
-            if dic['node']['subtree'] != {}:
-                # already expanded
-                tmp_node = dic['node']
-                tmp_action = action
+
+        if conf['THREAD_SIMULATION']:
+            threads = list()
+            for i, dic in enumerate(max_actions):
+                temp_board = np.copy(board)
+                t = threading.Thread(target=thread_board, args=(dic, temp_board, mcts_batch_size, boards, i), name=str(i))
+                threads.append(t)
+                t.start()
+            _ = [t.join() for t in threads]
+        else:
+            for i, dic in enumerate(max_actions):
+                action = dic['action']
                 tmp_board = np.copy(board)
-                x, y = index2coord(tmp_action)
-                tmp_board, _ = make_play(x, y, tmp_board)
-                while tmp_node['subtree'] != {}:
-                    tmp_max_actions = top_n_actions(tmp_node['subtree'], mcts_batch_size)
-                    tmp_d = tmp_max_actions[0]
-                    tmp_node = tmp_d['node']
-                    tmp_action = tmp_d['action']
-                    # The node for this action is the leaf, this is where the
-                    # update will start, working up the tree
-                    dic['node'] = tmp_node 
+
+                if dic['node']['subtree'] != {}:
+                    # already expanded
+                    tmp_node = dic['node']
+                    tmp_action = action
                     x, y = index2coord(tmp_action)
+                    tmp_board, _ = make_play(x, y, tmp_board)
+                    while tmp_node['subtree'] != {}:
+                        tmp_max_actions = top_n_actions(tmp_node['subtree'], mcts_batch_size)
+                        tmp_d = tmp_max_actions[0]
+                        tmp_node = tmp_d['node']
+                        tmp_action = tmp_d['action']
+                        # The node for this action is the leaf, this is where the
+                        # update will start, working up the tree
+                        dic['node'] = tmp_node
+                        x, y = index2coord(tmp_action)
+                        make_play(x, y, tmp_board)
+                    boards[i] = tmp_board
+                else:
+                    x, y = index2coord(action)
                     make_play(x, y, tmp_board)
-                boards[i] = tmp_board
-            else:
-                tmp_board = np.copy(board)
-                x, y = index2coord(action)
-                make_play(x, y, tmp_board)
-                boards[i] = tmp_board
+                    boards[i] = tmp_board
 
         # The random symmetry will changes boards, so copy them before hand
         presymmetry_boards = np.copy(boards)
-
         policies, values = random_symmetry_predict(model, boards)
 
-        for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
-            # reshape from [n, n, 17] to [1, n, n, 17]
-            shape = board.shape
-            board = board.reshape([1] + list(shape))
+        if conf['THREAD_SIMULATION']:
+            node_threads = list()
+            for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
+                t = threading.Thread(target=thread_subtree, args=(node, policy, v, board, action, original_player))
+                node_threads.append(t)
+                t.start()
+            _ = [t.join() for t in node_threads]
+        else:
+            for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
+                # reshape from [n, n, 17] to [1, n, n, 17]
+                shape = board.shape
+                board = board.reshape([1] + list(shape))
 
-            player = board[0, 0, 0, -1]
-            # Inverse value if we're looking from other player perspective
-            value = v[0] if player == original_player else -v[0]
+                player = board[0, 0, 0, -1]
+                # Inverse value if we're looking from other player perspective
+                value = v[0] if player == original_player else -v[0]
 
-            subtree = new_subtree(policy, board, node)
-            leaf_node = action['node']
-            leaf_node['subtree'] = subtree
+                subtree = new_subtree(policy, board, node)
+                leaf_node = action['node']
+                leaf_node['subtree'] = subtree
 
-            current_node = leaf_node
-            while True:
-                current_node['count'] += 1
-                current_node['value'] += value
-                current_node['mean_value'] = current_node['value'] / float(current_node['count'])
-                if current_node['parent']:
-                    current_node = current_node['parent']
-                else:
-                    break
+                current_node = leaf_node
+                while True:
+                    current_node['count'] += 1
+                    current_node['value'] += value
+                    current_node['mean_value'] = current_node['value'] / float(current_node['count'])
+                    if current_node['parent']:
+                        current_node = current_node['parent']
+                    else:
+                        break
     else:
         x, y = index2coord(selected_action)
         make_play(x, y, board)
@@ -235,9 +305,7 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
             if self_play:
                 other_mcts = mcts_tree
 
-
         index = select_play(policy, board, mcts_simulations, mcts_tree, temperature, current_model)
-        logger.debug("########## player %s play %s", player, index)
         x, y = index2coord(index)
 
         policy_target = np.zeros(SIZE*SIZE + 1)
