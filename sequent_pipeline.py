@@ -2,6 +2,7 @@ from utils import init_directories
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
+from thread_workers import init_workers
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     init_directories()
+    init_workers()
     GPUs = conf['GPUs']
     START_PHASE = "EVALUATION"
     STARTED = False

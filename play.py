@@ -1,14 +1,23 @@
 from random import random
 import numpy as np
+from math import sqrt
+from numpy.ma.core import MaskedConstant
+import numpy.ma as ma
 from conf import conf
+import logging
+from app_log import setup_logging
 
+setup_logging()
+logger = logging.getLogger(__name__)
 ###### board and game util functions
 
 SIZE = conf['SIZE']
 SWAP_INDEX = [1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14]
 colstr = 'ABCDEFGHJKLMNOPQRST'
 W = SIZE + 2
-
+Cpuct = 1
+DIRICHLET_ALPHA = conf['DIRICHLET_ALPHA']
+DIRICHLET_EPSILON = conf['DIRICHLET_EPSILON']
 
 def str_coord(c):
     if c == "resign":
@@ -221,6 +230,14 @@ def make_play(x, y, board, color=None):
         player = board[0,0,0,-1]
     board[:,:,:,2:16] = board[:,:,:,0:14]
     if y != SIZE:
+        if board[0,y,x,1] != 0:
+            logger.info("x,y: %s,%s", x, y)
+            logger.info(board[0,y,x,1])
+            logger.info(board[0,:,:,1])
+        if board[0,y,x,0] != 0:
+            logger.info("x2,y2: %s,%s", x, y)
+            logger.info(board[0, y, x, 0])
+            logger.info(board[0, :, :, 0])
         assert board[0,y,x,1] == 0
         assert board[0,y,x,0] == 0
         board[0,y,x,0] = 1  # Careful here about indices
@@ -295,3 +312,73 @@ def choose_first_player(model1, model2):
     else:
         other_model, current_model = model1, model2
     return current_model, other_model
+
+def top_n_actions(subtree, top_n):
+    total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
+    if total_n == 0:
+        total_n = 1
+    # Select exploration
+    max_actions = []
+    for a, dic in subtree.items():
+        u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
+        v = dic['mean_value'] + u
+
+        if len(max_actions) < top_n or v > max_actions[0]['value']:
+            max_actions.append({'action': a, 'value': v, 'node': dic})
+            max_actions.sort(key=lambda x: x['value'], reverse=True)
+        if len(max_actions) > top_n:
+            max_actions = max_actions[:-1]
+    return max_actions
+
+
+
+def show_tree(x, y, tree, indent=''):
+    if tree['parent'] is None:
+        print('ROOT p: %s, count: %s' % (tree['p'], tree['count']))
+    elif tree['count'] >= 1:
+        print('%s Move(%s,%s) p: %s, count: %s' % (indent, x, y, tree['p'], tree['count']))
+    for action, node in tree['subtree'].items():
+        x, y = index2coord(action)
+        show_tree(x, y, node, indent=indent+'--')
+
+def new_tree(policy, board, add_noise=False):
+    mcts_tree = {
+        'count': 0,
+        'value': 0,
+        'mean_value': 0,
+        'p': 1,
+        'subtree':{},
+        'parent': None,
+    }
+    subtree = new_subtree(policy, board, parent=mcts_tree, add_noise=add_noise)
+    mcts_tree['subtree'] = subtree
+    return mcts_tree
+
+def new_subtree(policy, board, parent, add_noise=False):
+    leaf = {}
+
+    # We need to check for legal moves here because MCTS might not have expanded
+    # this subtree
+    mask = legal_moves(board)
+    policy = ma.masked_array(policy, mask=mask)
+
+    # Add Dirichlet noise.
+    tmp = policy.reshape(-1)
+    if add_noise:
+        noise = np.random.dirichlet([DIRICHLET_ALPHA for i in range(tmp.shape[0])])
+        tmp = (1 - DIRICHLET_EPSILON) * tmp + DIRICHLET_EPSILON * noise
+
+
+    for move, p in enumerate(tmp):
+        if isinstance(p, MaskedConstant):
+            continue
+
+        leaf[move] = {
+            'count': 0,
+            'value': 0,
+            'mean_value': 0,
+            'p': p,
+            'subtree':{},
+            'parent': parent,
+        }
+    return leaf

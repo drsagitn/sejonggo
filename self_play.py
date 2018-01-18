@@ -1,100 +1,27 @@
 # -*- coding: utf-8 -*-
 import datetime
 import shutil
-from math import sqrt
-import threading, queue
 import h5py
 import numpy as np
-import numpy.ma as ma
 import tqdm
-from numpy.ma.core import MaskedConstant
+import numpy.ma as ma
+
 from sgfsave import save_game_sgf
 from play import (
     legal_moves, index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner,
+    show_board, get_winner, new_tree, top_n_actions, new_subtree
 )
 from symmetry import random_symmetry_predict
 from random import random
 from model import *
-from play import get_real_board
+from thread_workers import *
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
-DIRICHLET_ALPHA = conf['DIRICHLET_ALPHA']
-DIRICHLET_EPSILON = conf['DIRICHLET_EPSILON']
 RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
 RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
-Cpuct = 1
-
-def show_tree(x, y, tree, indent=''):
-    if tree['parent'] is None:
-        print('ROOT p: %s, count: %s' % (tree['p'], tree['count']))
-    elif tree['count'] >= 1:
-        print('%s Move(%s,%s) p: %s, count: %s' % (indent, x, y, tree['p'], tree['count']))
-    for action, node in tree['subtree'].items():
-        x, y = index2coord(action)
-        show_tree(x, y, node, indent=indent+'--')
-
-def new_tree(policy, board, add_noise=False):
-    mcts_tree = {
-        'count': 0,
-        'value': 0,
-        'mean_value': 0,
-        'p': 1,
-        'subtree':{},
-        'parent': None,
-    }
-    subtree = new_subtree(policy, board, parent=mcts_tree, add_noise=add_noise)
-    mcts_tree['subtree'] = subtree
-    return mcts_tree
-
-def new_subtree(policy, board, parent, add_noise=False):
-    leaf = {}
-
-    # We need to check for legal moves here because MCTS might not have expanded
-    # this subtree
-    mask = legal_moves(board)
-    policy = ma.masked_array(policy, mask=mask)
-
-    # Add Dirichlet noise.
-    tmp = policy.reshape(-1)
-    if add_noise:
-        noise = np.random.dirichlet([DIRICHLET_ALPHA for i in range(tmp.shape[0])])
-        tmp = (1 - DIRICHLET_EPSILON) * tmp + DIRICHLET_EPSILON * noise
-
-
-    for move, p in enumerate(tmp):
-        if isinstance(p, MaskedConstant):
-            continue
-
-        leaf[move] = {
-            'count': 0,
-            'value': 0,
-            'mean_value': 0,
-            'p': p,
-            'subtree':{},
-            'parent': parent,
-        }
-    return leaf
-
-def top_n_actions(subtree, top_n):
-    total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
-    if total_n == 0:
-        total_n = 1
-    # Select exploration
-    max_actions = []
-    for a, dic in subtree.items():
-        u = Cpuct * dic['p'] * total_n / (1. + dic['count']) 
-        v = dic['mean_value'] + u
-
-        if len(max_actions) < top_n or v > max_actions[0]['value']:
-            max_actions.append({'action': a, 'value': v, 'node': dic})
-            max_actions.sort(key=lambda x: x['value'], reverse=True)
-        if len(max_actions) > top_n:
-            max_actions = max_actions[:-1]
-    return max_actions
 
 
 def thread_board(dic, board, mcts_batch_size, boards, i):
@@ -160,13 +87,10 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
 
         if conf['THREAD_SIMULATION']:
-            threads = list()
             for i, dic in enumerate(max_actions):
                 temp_board = np.copy(board)
-                t = threading.Thread(target=thread_board, args=(dic, temp_board, mcts_batch_size, boards, i), name=str(i))
-                threads.append(t)
-                t.start()
-            _ = [t.join() for t in threads]
+                board_queue.put((dic, temp_board, mcts_batch_size, boards, i))
+            board_queue.join()
         else:
             for i, dic in enumerate(max_actions):
                 action = dic['action']
@@ -199,12 +123,9 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         policies, values = random_symmetry_predict(model, boards)
 
         if conf['THREAD_SIMULATION']:
-            node_threads = list()
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
-                t = threading.Thread(target=thread_subtree, args=(node, policy, v, board, action, original_player))
-                node_threads.append(t)
-                t.start()
-            _ = [t.join() for t in node_threads]
+                subtree_queue.put((node, policy, v, board, action, original_player))
+            subtree_queue.join()
         else:
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
                 # reshape from [n, n, 17] to [1, n, n, 17]

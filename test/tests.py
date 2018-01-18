@@ -7,6 +7,7 @@ conf['KOMI'] = 5.5  # Override settings for tests
 
 import unittest
 import numpy as np
+from thread_workers import init_workers
 import os
 from play import (
         color_board, _get_points, capture_group, make_play, legal_moves,
@@ -679,9 +680,9 @@ class TestSymmetrydTestCase(unittest.TestCase):
         self.assertEqual(policy[0, size * size], -1)
 
 
-
 class MCTSTestCase(unittest.TestCase):
     def setUp(self):
+        init_workers()
         # Remove the symmetries for reproductibility
         import symmetry
         symmetry.SYMMETRIES = symmetry.SYMMETRIES[0:1]
