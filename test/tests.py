@@ -7,7 +7,7 @@ conf['KOMI'] = 5.5  # Override settings for tests
 
 import unittest
 import numpy as np
-from thread_workers import init_workers
+from thread_workers import init_workers, destroy_workers
 import os
 from play import (
         color_board, _get_points, capture_group, make_play, legal_moves,
@@ -16,6 +16,7 @@ from play import (
 from self_play import (
         play_game, simulate,
 )
+
 from symmetry import (
         _id,
         left_diagonal, reverse_left_diagonal,
@@ -682,7 +683,7 @@ class TestSymmetrydTestCase(unittest.TestCase):
 
 class MCTSTestCase(unittest.TestCase):
     def setUp(self):
-        init_workers()
+
         # Remove the symmetries for reproductibility
         import symmetry
         symmetry.SYMMETRIES = symmetry.SYMMETRIES[0:1]
@@ -713,17 +714,21 @@ class MCTSTestCase(unittest.TestCase):
         tree['subtree'][1]['parent'] = tree
         
         board, player = game_init()
-
         model = DummyModel()
-
         self.model = model
         self.board = board
         self.tree = tree
+        init_workers()
+
+
+    def tearDown(self):
+        destroy_workers()
 
     def test_leaf(self):
         tree = self.tree
         board = self.board 
         model = self.model
+
 
         simulate(tree, board, model, mcts_batch_size=2, original_player=1)
         self.assertEqual(tree['subtree'][0]['count'], 1)
@@ -1050,6 +1055,10 @@ class PlayTestCase(unittest.TestCase):
         symmetry.SYMMETRIES = symmetry.SYMMETRIES[0:1]
         from random import seed
         seed(0)
+        init_workers()
+
+    def tearDown(self):
+        destroy_workers()
 
     # def test_play(self):
     #     model = DummyModel()
@@ -1089,6 +1098,7 @@ class PlayTestCase(unittest.TestCase):
         mcts_simulations = 8 #  We want some mcts exploration
         play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True, num_moves=5)
         self.assertEqual(self.count, 1)  # Only one tree was created
+
 
     def test_new_tree_called_twice_evaluation(self):
         import self_play

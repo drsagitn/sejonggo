@@ -15,7 +15,6 @@ from play import (
 from symmetry import random_symmetry_predict
 from random import random
 from model import *
-from thread_workers import *
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -87,9 +86,10 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
 
         if conf['THREAD_SIMULATION']:
+            from thread_workers import board_queue
             for i, dic in enumerate(max_actions):
                 temp_board = np.copy(board)
-                board_queue.put((dic, temp_board, mcts_batch_size, boards, i))
+                board_queue.put((dic, temp_board, mcts_batch_size, boards, i, False))
             board_queue.join()
         else:
             for i, dic in enumerate(max_actions):
@@ -123,8 +123,9 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         policies, values = random_symmetry_predict(model, boards)
 
         if conf['THREAD_SIMULATION']:
+            from thread_workers import subtree_queue
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
-                subtree_queue.put((node, policy, v, board, action, original_player))
+                subtree_queue.put((node, policy, v, board, action, original_player, False))
             subtree_queue.join()
         else:
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):

@@ -30,7 +30,7 @@ def board_worker():
         dic, board, mcts_batch_size, boards, i, isStop = board_queue.get()
         if isStop:
             break
-
+        print("broad worker %s received and proceeding job" % i)
         action = dic['action']
         if dic['node']['subtree'] != {}:
             # already expanded
@@ -65,7 +65,7 @@ def subtree_worker():
         node, policy, v, board, action, original_player, isStop = subtree_queue.get()
         if isStop:
             break
-
+        print("subtree worker received and proceeding job")
         shape = board.shape
         board = board.reshape([1] + list(shape))
 
