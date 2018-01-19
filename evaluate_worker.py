@@ -4,6 +4,7 @@ from tqdm import tqdm
 import time
 from pathlib import Path
 from evaluator import promote_best_model
+from thread_workers import init_workers, destroy_workers
 setup_logging()
 logger = logging.getLogger(__name__)
 

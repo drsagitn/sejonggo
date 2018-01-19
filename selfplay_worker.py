@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import time
 from self_play import *
+from thread_workers import init_workers, destroy_workers
 setup_logging()
 logger = logging.getLogger(__name__)
 
