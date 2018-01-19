@@ -1120,9 +1120,11 @@ class PlayTestCase(unittest.TestCase):
 class SGFTestCase(unittest.TestCase):
     def test_save_sgf(self):
         model = DummyModel()
+        init_workers()
         mcts_simulations = 8 # mcts batch size is 8 and we need at least one batch
         game_data = play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True, num_moves=10)
         save_game_sgf("test_model", 0, game_data)
+        destroy_workers()
 
         os.remove("games/test_model/game_000.sgf")
         os.removedirs("games/test_model")

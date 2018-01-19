@@ -90,7 +90,8 @@ def simulate(node, board, model, mcts_batch_size, original_player):
             for i, dic in enumerate(max_actions):
                 temp_board = np.copy(board)
                 board_queue.put((dic, temp_board, mcts_batch_size, boards, i, False))
-            board_queue.join()
+            if not board_queue.empty():
+                board_queue.join()
         else:
             for i, dic in enumerate(max_actions):
                 action = dic['action']
@@ -126,7 +127,8 @@ def simulate(node, board, model, mcts_batch_size, original_player):
             from thread_workers import subtree_queue
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
                 subtree_queue.put((node, policy, v, board, action, original_player, False))
-            subtree_queue.join()
+            if not subtree_queue.empty():
+                subtree_queue.join()
         else:
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
                 # reshape from [n, n, 17] to [1, n, n, 17]
