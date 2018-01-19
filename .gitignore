@@ -19,3 +19,7 @@ models/
 
 eval_games/
 sp_eval_games/
+
+*.AppImage
+
+mcts/

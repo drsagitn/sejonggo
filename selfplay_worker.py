@@ -36,4 +36,5 @@ class SelfPlayWorker(Process):
             model = load_best_model()
             logger.info("Loaded %s", model.name)
 
+        destroy_workers()
         K.clear_session()

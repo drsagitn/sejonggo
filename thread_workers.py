@@ -19,9 +19,17 @@ def init_workers():
         t2.start()
 
 
+def destroy_workers():
+    for i in range(conf['MCTS_BATCH_SIZE']):
+        board_queue.put((None, None, None, None, None, True))
+        subtree_queue.put((None, None, None, None, None, None, True))
+
+
 def board_worker():
     while True:
-        dic, board, mcts_batch_size, boards, i = board_queue.get()
+        dic, board, mcts_batch_size, boards, i, isStop = board_queue.get()
+        if isStop:
+            break
 
         action = dic['action']
         if dic['node']['subtree'] != {}:
@@ -54,7 +62,9 @@ def board_worker():
 
 def subtree_worker():
     while True:
-        node, policy, v, board, action, original_player = subtree_queue.get()
+        node, policy, v, board, action, original_player, isStop = subtree_queue.get()
+        if isStop:
+            break
 
         shape = board.shape
         board = board.reshape([1] + list(shape))

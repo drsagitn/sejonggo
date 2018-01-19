@@ -81,4 +81,5 @@ class EvaluateWorker(Process):
                 break
             latest_model, best_model = self.load_model()
 
+        destroy_workers()
         K.clear_session()
