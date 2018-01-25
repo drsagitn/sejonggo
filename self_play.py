@@ -10,7 +10,7 @@ from sgfsave import save_game_sgf
 from play import (
     legal_moves, index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner, new_tree, top_n_actions, new_subtree
+    show_board, get_winner, new_tree, top_n_actions, new_subtree, top_one_action
 )
 from symmetry import random_symmetry_predict
 from random import random
@@ -22,58 +22,6 @@ RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
 RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 
-
-def thread_board(dic, board, mcts_batch_size, boards, i):
-    action = dic['action']
-    if dic['node']['subtree'] != {}:
-        # already expanded
-        tmp_node = dic['node']
-        tmp_action = action
-        x, y = index2coord(tmp_action)
-        board, _ = make_play(x, y, board)
-        n = 0
-        while tmp_node['subtree'] != {}:
-            tmp_max_actions = top_n_actions(tmp_node['subtree'], mcts_batch_size)
-            tmp_d = tmp_max_actions[0]
-            tmp_node = tmp_d['node']
-            tmp_action = tmp_d['action']
-            # The node for this action is the leaf, this is where the
-            # update will start, working up the tree
-            dic['node'] = tmp_node
-            x, y = index2coord(tmp_action)
-            n += 1
-            make_play(x, y, board)
-        boards[i] = board
-
-    else:
-        x, y = index2coord(action)
-        make_play(x, y, board)
-        boards[i] = board
-
-
-def thread_subtree(node, policy, v, board, action, original_player):
-    shape = board.shape
-    board = board.reshape([1] + list(shape))
-
-    player = board[0, 0, 0, -1]
-    # Inverse value if we're looking from other player perspective
-    value = v[0] if player == original_player else -v[0]
-
-    subtree = new_subtree(policy, board, node)
-    leaf_node = action['node']
-    leaf_node['subtree'] = subtree
-
-    current_node = leaf_node
-    while True:
-        current_node['count'] += 1
-        current_node['value'] += value
-        current_node['mean_value'] = current_node['value'] / float(current_node['count'])
-        if current_node['parent']:
-            current_node = current_node['parent']
-        else:
-            break
-
-
 def simulate(node, board, model, mcts_batch_size, original_player):
     node_subtree = node['subtree']
     max_actions = top_n_actions(node_subtree, mcts_batch_size)
@@ -82,17 +30,13 @@ def simulate(node, board, model, mcts_batch_size, original_player):
     selected_action = max_a
     selected_node = node_subtree[selected_action]
     if selected_node['subtree'] == {}:
-        # This is a leaf
-        boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
 
-        if conf['THREAD_SIMULATION']:
-            from thread_workers import board_queue
-            for i, dic in enumerate(max_actions):
-                temp_board = np.copy(board)
-                board_queue.put((dic, temp_board, mcts_batch_size, boards, i, False))
-            if not board_queue.empty():
-                board_queue.join()
+        if False: #conf['THREAD_SIMULATION']:
+            from thread_workers import process_pool, board_worker
+            ret = process_pool.map(board_worker, [(dic, board) for i, dic in enumerate(max_actions)])
+            boards = np.array(ret)
         else:
+            boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
             for i, dic in enumerate(max_actions):
                 action = dic['action']
                 tmp_board = np.copy(board)
@@ -104,8 +48,9 @@ def simulate(node, board, model, mcts_batch_size, original_player):
                     x, y = index2coord(tmp_action)
                     tmp_board, _ = make_play(x, y, tmp_board)
                     while tmp_node['subtree'] != {}:
-                        tmp_max_actions = top_n_actions(tmp_node['subtree'], mcts_batch_size)
-                        tmp_d = tmp_max_actions[0]
+                        # tmp_max_actions = top_n_actions(tmp_node['subtree'], 1)
+                        # tmp_d = tmp_max_actions[0]
+                        tmp_d = top_one_action(tmp_node['subtree'])
                         tmp_node = tmp_d['node']
                         tmp_action = tmp_d['action']
                         # The node for this action is the leaf, this is where the
@@ -124,11 +69,27 @@ def simulate(node, board, model, mcts_batch_size, original_player):
         policies, values = random_symmetry_predict(model, boards)
 
         if conf['THREAD_SIMULATION']:
-            from thread_workers import subtree_queue
-            for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
-                subtree_queue.put((node, policy, v, board, action, original_player, False))
-            if not subtree_queue.empty():
-                subtree_queue.join()
+            from thread_workers import subtree_worker, process_pool
+            subtree_array = process_pool.map(subtree_worker, [(policy, board) for policy, board in zip(policies, presymmetry_boards)])
+
+            for subtree, board, v, action in zip(subtree_array, presymmetry_boards, values, max_actions):
+                player = board[0, 0, -1]
+                value = v[0] if player == original_player else -v[0]
+                leaf_node = action['node']
+                for _, node in subtree.items():
+                    node['parent'] = leaf_node
+                leaf_node['subtree'] = subtree
+
+                current_node = leaf_node
+                while True:
+                    current_node['count'] += 1
+                    current_node['value'] += value
+                    current_node['mean_value'] = current_node['value'] / float(current_node['count'])
+                    if current_node['parent']:
+                        current_node = current_node['parent']
+                    else:
+                        break
+
         else:
             for policy, v, board, action in zip(policies, values, presymmetry_boards, max_actions):
                 # reshape from [n, n, 17] to [1, n, n, 17]
@@ -139,8 +100,8 @@ def simulate(node, board, model, mcts_batch_size, original_player):
                 # Inverse value if we're looking from other player perspective
                 value = v[0] if player == original_player else -v[0]
 
-                subtree = new_subtree(policy, board, node)
                 leaf_node = action['node']
+                subtree = new_subtree(policy, board, leaf_node)
                 leaf_node['subtree'] = subtree
 
                 current_node = leaf_node
@@ -162,10 +123,14 @@ def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model
     # TODO: make parallelization here, each simulation can be handled by a thread/process/CPU
     if mcts_simulations is None:
         mcts_simulations = conf['MCTS_SIMULATIONS']
-    for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):
+
+    for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):  # depth of the tree
         test_board = np.copy(board)
         original_player = board[0,0,0,-1]
+        start = datetime.datetime.now()
         simulate(mcts_tree, test_board, model, MCTS_BATCH_SIZE, original_player)
+        end = datetime.datetime.now()
+        print("#####simulation time: %s", end - start)
 
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
@@ -186,10 +151,10 @@ def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model
 def select_play(policy, board, mcts_simulations, mcts_tree, temperature, model):
     mask = legal_moves(board)
     policy = ma.masked_array(policy, mask=mask)
+    start = datetime.datetime.now()
     index = mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model)
-
-    # index = np.argmax(policy)
-    x, y = index2coord(index)
+    end = datetime.datetime.now()
+    print("################TIME PER MOVE: %s", end - start)
     return index
 
 def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
@@ -204,7 +169,6 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
 
     model1_isblack = current_model == model1
 
-    start = datetime.datetime.now()
     skipped_last = False
     temperature = 1
     start = datetime.datetime.now()

@@ -13,7 +13,8 @@ from thread_workers import init_workers
 def main():
     print("Starting run (v{})".format(__version__))
     init_directories()
-    init_workers()
+    if conf['THREAD_SIMULATION']:
+        init_workers()
     model_name = "model_1"
     model = create_initial_model(name=model_name)
 

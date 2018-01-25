@@ -230,14 +230,6 @@ def make_play(x, y, board, color=None):
         player = board[0,0,0,-1]
     board[:,:,:,2:16] = board[:,:,:,0:14]
     if y != SIZE:
-        if board[0,y,x,1] != 0:
-            logger.info("x,y: %s,%s", x, y)
-            logger.info(board[0,y,x,1])
-            logger.info(board[0,:,:,1])
-        if board[0,y,x,0] != 0:
-            logger.info("x2,y2: %s,%s", x, y)
-            logger.info(board[0, y, x, 0])
-            logger.info(board[0, :, :, 0])
         assert board[0,y,x,1] == 0
         assert board[0,y,x,0] == 0
         board[0,y,x,0] = 1  # Careful here about indices
@@ -313,6 +305,19 @@ def choose_first_player(model1, model2):
         other_model, current_model = model1, model2
     return current_model, other_model
 
+
+def top_one_action(subtree):
+    total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
+    if total_n == 0:
+        total_n = 1
+    max_action = {'action': -1, 'value': -1, 'node': None}
+    for a, dic in subtree.items():
+        u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
+        v = dic['mean_value'] + u
+        if v > max_action['value']:
+            max_action = {'action': a, 'value': v, 'node': dic}
+    return max_action
+
 def top_n_actions(subtree, top_n):
     total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
     if total_n == 0:
@@ -323,7 +328,7 @@ def top_n_actions(subtree, top_n):
         u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
         v = dic['mean_value'] + u
 
-        if len(max_actions) < top_n or v > max_actions[0]['value']:
+        if len(max_actions) < top_n or v > max_actions[-1]['value']:
             max_actions.append({'action': a, 'value': v, 'node': dic})
             max_actions.sort(key=lambda x: x['value'], reverse=True)
         if len(max_actions) > top_n:
