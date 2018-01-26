@@ -40,7 +40,8 @@ class EvaluateWorker(Process):
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
         logger.info('cuda_visible_device %s', os.environ["CUDA_VISIBLE_DEVICES"])
-        init_workers()
+        if conf['THREAD_SIMULATION']:
+            init_workers()
 
         # load models
         latest_model, best_model = self.load_model()
