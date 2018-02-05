@@ -25,9 +25,7 @@ SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 def simulate(node, board, model, mcts_batch_size, original_player):
     node_subtree = node['subtree']
     max_actions = top_n_actions(node_subtree, mcts_batch_size)
-    max_a = max_actions[0]['action']
-
-    selected_action = max_a
+    selected_action = max_actions[0]['action']
     selected_node = node_subtree[selected_action]
     if selected_node['subtree'] == {}:
 
@@ -36,7 +34,7 @@ def simulate(node, board, model, mcts_batch_size, original_player):
             ret = process_pool.map(board_worker, [(dic, board) for i, dic in enumerate(max_actions)])
             boards = np.array(ret)
         else:
-            boards = np.zeros((mcts_batch_size, SIZE, SIZE, 17), dtype=np.float32)
+            boards = np.zeros((len(max_actions), SIZE, SIZE, 17), dtype=np.float32)
             for i, dic in enumerate(max_actions):
                 action = dic['action']
                 tmp_board = np.copy(board)
