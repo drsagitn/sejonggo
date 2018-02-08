@@ -305,6 +305,22 @@ def choose_first_player(model1, model2):
         other_model, current_model = model1, model2
     return current_model, other_model
 
+def top_one_with_virtual_loss(node):
+    subtree = node['subtree']
+    total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
+    if total_n == 0:
+        total_n = 1
+    max_value = -100
+    max_action = {}
+    for a, dic in subtree.items():
+        if dic['virtual_loss'] > 0:
+            continue
+        u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
+        v = dic['mean_value'] + u - dic['virtual_loss']
+        if v > max_value:
+            max_value = v
+            max_action = {'action': a, 'node': dic}
+    return max_action
 
 def top_one_action(subtree):
     total_n = sqrt(sum(dic['count'] for dic in subtree.values()))
@@ -352,8 +368,9 @@ def new_tree(policy, board, add_noise=False):
         'value': 0,
         'mean_value': 0,
         'p': 1,
-        'subtree':{},
+        'subtree': {},
         'parent': None,
+        'virtual_loss': 0
     }
     subtree = new_subtree(policy, board, parent=mcts_tree, add_noise=add_noise)
     mcts_tree['subtree'] = subtree
@@ -383,7 +400,8 @@ def new_subtree(policy, board, parent, add_noise=False):
             'value': 0,
             'mean_value': 0,
             'p': p,
-            'subtree':{},
+            'subtree': {},
             'parent': parent,
+            'virtual_loss': 0
         }
     return leaf

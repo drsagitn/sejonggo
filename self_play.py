@@ -10,17 +10,63 @@ from sgfsave import save_game_sgf
 from play import (
     legal_moves, index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner, new_tree, top_n_actions, new_subtree, top_one_action
+    show_board, get_winner, new_tree, top_n_actions, new_subtree, top_one_action, top_one_with_virtual_loss
 )
 from symmetry import random_symmetry_predict
 from random import random
 from model import *
+from time import sleep
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
 RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
 RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
+
+def update_root(result, node, action):
+    print("CALL BACK %s %s" % (action, result['value']))
+    # print(hex(id(node)))
+    from thread_workers import lock
+    lock.acquire()
+    print("locked %s" % action)
+    node['subtree'][action] = result
+    node['count'] += 1
+    node['value'] += result['value']
+    node['mean_value'] = node['value'] / float(node['count'])
+    result['virtual_loss'] = 0
+    result['parent'] = node
+    lock.release()
+    print("released %s" % action)
+
+def error_handler(err):
+    print(err)
+    raise err
+
+def async_simulate(node, board, model, energy, original_player):
+    from thread_workers import process_pool, basic_tasks
+    from functools import partial
+    while energy > 0:
+        action = top_one_with_virtual_loss(node)
+        if action == {}:
+            continue
+        print("M:TOP FUNC RETURN %s %s" % (action['action'], action['node']['virtual_loss']))
+        child_node = action['node']
+        child_node['parent'] = None
+        child_node['virtual_loss'] += 2
+
+        # callback_func = lambda result: update_root(result, node, action['action'])
+        callback_func = partial(update_root, node=node, action=action['action'])
+        # async_func = partial(basic_tasks, node=copy.deepcopy(child_node), board=board, move=action['action'], model=model, original_player=original_player)
+        process_pool.apply_async(basic_tasks, (child_node, board, action['action'], model, original_player), callback=callback_func, error_callback=error_handler)
+
+        # process_pool.apply_async(async_func, callback=callback_func)
+        # result = basic_tasks(copy.deepcopy(child_node), np.copy(board), action['action'], model, original_player)
+        # update_root(result, node, action['action'])
+        energy -= 1
+    while len(process_pool._cache) > 0:
+        sleep(0.001)
+    # last_result.wait()
+    print("POOL CACHE %s" % process_pool._cache)
 
 def simulate(node, board, model, mcts_batch_size, original_player):
     node_subtree = node['subtree']
@@ -121,15 +167,17 @@ def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model
     # TODO: make parallelization here, each simulation can be handled by a thread/process/CPU
     if mcts_simulations is None:
         mcts_simulations = conf['MCTS_SIMULATIONS']
+    async_simulate(mcts_tree, np.copy(board), model, mcts_simulations, board[0,0,0,-1])
+    # for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):  # depth of the tree
+    #     test_board = np.copy(board)
+    #     original_player = board[0,0,0,-1]
+    #     start = datetime.datetime.now()
+    #     simulate(mcts_tree, test_board, model, MCTS_BATCH_SIZE, original_player)
+    #     end = datetime.datetime.now()
+    #     print("#####simulation time: %s", end - start)
 
-    for i in range(int(mcts_simulations/MCTS_BATCH_SIZE)):  # depth of the tree
-        test_board = np.copy(board)
-        original_player = board[0,0,0,-1]
-        start = datetime.datetime.now()
-        simulate(mcts_tree, test_board, model, MCTS_BATCH_SIZE, original_player)
-        end = datetime.datetime.now()
-        print("#####simulation time: %s", end - start)
-
+    # from play import show_tree
+    # show_tree(None, None, mcts_tree)
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
         moves = []

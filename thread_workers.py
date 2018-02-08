@@ -1,26 +1,60 @@
 from play import index2coord, make_play
 from self_play import top_one_action, new_subtree
 from conf import conf
-from multiprocessing import Process, Queue, Pool
-
+from multiprocessing import Queue, Pool, Lock
+from symmetry import random_symmetry_predict
 
 board_queue = Queue()
 subtree_queue = Queue()
 
-MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
+N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
 process_pool = None
-
+lock = None
 
 def init_workers():
     global process_pool
-    process_pool = Pool(processes=MCTS_BATCH_SIZE)
+    global lock
+    lock = Lock()
+    process_pool = Pool(processes=N_SIMULATE_PROCESS, initializer=init_pool_param, initargs=(lock,))
 
+def init_pool_param(l):
+    global lock
+    lock = l
 
 def destroy_workers():
     if process_pool is not None:
         process_pool.close()
         process_pool.join()
 
+
+def basic_tasks(node, board, move, model, original_player):
+    print("PROCESS action %s at" % move)
+    moves = [move]
+    while node['subtree'] != {}:
+        action = top_one_action(node['subtree'])
+        node = action['node']
+        moves.append(action['action'])
+    #  making board
+    for m in moves:
+        x,y = index2coord(m)
+        board, _ = make_play(x,y, board)
+    # predict next value and policy
+    policy, value = random_symmetry_predict(model, board)
+
+    # making subtree
+    node['subtree'] = new_subtree(policy[0], board, node)
+    # backpropagation
+    v = value[0][0] if board[0, 0, 0, -1] == original_player else -value[0][0]
+    print("OUTPUT VALUE %s from action %s with player %s" % (v, move, board[0, 0, 0, -1]))
+    while True:
+        node['count'] += 1
+        node['value'] += v
+        node['mean_value'] = node['value'] / float(node['count'])
+        if node['parent']:
+            node = node['parent']
+        else:
+            break
+    return node
 
 def board_worker(input_tuple):
     try:
