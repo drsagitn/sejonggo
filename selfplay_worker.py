@@ -1,7 +1,11 @@
 from multiprocessing import Process
 import time
+from nomodel_self_play import play_game_async
 from self_play import *
-from thread_workers import init_workers, destroy_workers
+from predicting_service import init_predicting_service, shutdown_predicting_service
+
+from simulation_workers import init_simulation_workers, destroy_simulation_workers
+from predicting_client import PredictingClient
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -18,7 +22,7 @@ class SelfPlayWorker(Process):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
         logger.info('cuda_visible_device %s', os.environ["CUDA_VISIBLE_DEVICES"])
         if conf['THREAD_SIMULATION']:
-            init_workers()
+            init_simulation_workers()
 
         name = ""
         model = load_best_model()
@@ -38,5 +42,67 @@ class SelfPlayWorker(Process):
             model = load_best_model()
             logger.info("Loaded %s", model.name)
 
-        destroy_workers()
+        destroy_simulation_workers()
         K.clear_session()
+
+
+class NoModelSelfPlayWorker(Process):
+    def __init__(self, gpuid):
+        Process.__init__(self, name='SelfPlayProcessor')
+        self._gpuid = gpuid
+
+    def run(self):
+        try:
+            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+            os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
+            # init_predicting_service(self._gpuid)
+            init_simulation_workers()
+
+
+            n_games = conf['N_GAMES']
+            energy = conf['ENERGY']
+            pc = PredictingClient()
+            model_name = pc.get_best_model_name()
+
+            desc = "Async Self play %s for %s games" % (model_name, n_games)
+            games = tqdm.tqdm(range(n_games), desc=desc)
+            current_resign = None
+            min_values = []
+            for game in games:
+                directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
+                print("CHECK POINT!! %s" % directory)
+                if os.path.isdir(directory):
+                    continue
+                os.makedirs(directory)
+
+                if random() > RESIGNATION_PERCENT:
+                    resign = current_resign
+                else:
+                    resign = None
+                start = datetime.datetime.now()
+                game_data = play_game_async("BEST_MODEL", "BEST_MODEL", energy, conf['STOP_EXPLORATION'], self_play=True,
+                                            resign_model1=resign, resign_model2=resign)
+                stop = datetime.datetime.now()
+
+                # If we did not use resignation, we had the result towards resign value.
+                if resign == None:
+                    winner = game_data['winner']
+                    if winner == 1:
+                        min_value = min([move['value'] for move in game_data['moves'][::2]])
+                    else:
+                        min_value = min([move['value'] for move in game_data['moves'][1::2]])
+                    min_values.append(min_value)
+                    l = len(min_values)
+                    resignation_index = int(RESIGNATION_ALLOWED_ERROR * l)
+                    if resignation_index > 0:
+                        current_resign = min_values[resignation_index]
+
+                moves = len(game_data['moves'])
+                speed = ((stop - start).seconds / moves) if moves else 0.
+                games.set_description(desc + " %s moves %.2fs/move " % (moves, speed))
+                save_self_play_data(model_name, game, game_data)
+                logger.info("Finish self-play game %s", game)
+            destroy_simulation_workers()
+            shutdown_predicting_service(self._gpuid)
+        except Exception as e:
+            print("EXCEPTION!!!: %s" % e)

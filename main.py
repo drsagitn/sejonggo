@@ -7,14 +7,14 @@ from evaluator import evaluate
 from __init__ import __version__
 from app_log import setup_logging
 from utils import init_directories
-from thread_workers import init_workers
+from simulation_workers import init_simulation_workers
 
 
 def main():
     print("Starting run (v{})".format(__version__))
     init_directories()
     if conf['THREAD_SIMULATION']:
-        init_workers()
+        init_simulation_workers()
     model_name = "model_1"
     model = create_initial_model(name=model_name)
 

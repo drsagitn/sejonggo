@@ -7,7 +7,7 @@ conf['KOMI'] = 5.5  # Override settings for tests
 
 import unittest
 import numpy as np
-from thread_workers import init_workers, destroy_workers
+from simulation_workers import init_simulation_workers, destroy_simulation_workers
 import os
 from play import (
         color_board, _get_points, capture_group, make_play, legal_moves,
@@ -718,11 +718,11 @@ class MCTSTestCase(unittest.TestCase):
         self.model = model
         self.board = board
         self.tree = tree
-        init_workers()
+        init_simulation_workers()
 
 
     def tearDown(self):
-        destroy_workers()
+        destroy_simulation_workers()
 
     def test_leaf(self):
         tree = self.tree
@@ -1055,10 +1055,10 @@ class PlayTestCase(unittest.TestCase):
         symmetry.SYMMETRIES = symmetry.SYMMETRIES[0:1]
         from random import seed
         seed(0)
-        init_workers()
+        init_simulation_workers()
 
     def tearDown(self):
-        destroy_workers()
+        destroy_simulation_workers()
 
     # def test_play(self):
     #     model = DummyModel()
@@ -1120,11 +1120,11 @@ class PlayTestCase(unittest.TestCase):
 class SGFTestCase(unittest.TestCase):
     def test_save_sgf(self):
         model = DummyModel()
-        init_workers()
+        init_simulation_workers()
         mcts_simulations = 8 # mcts batch size is 8 and we need at least one batch
         game_data = play_game(model, model, mcts_simulations, conf['STOP_EXPLORATION'], self_play=True, num_moves=10)
         save_game_sgf("test_model", 0, game_data)
-        destroy_workers()
+        destroy_simulation_workers()
 
         os.remove("games/test_model/game_000.sgf")
         os.removedirs("games/test_model")
