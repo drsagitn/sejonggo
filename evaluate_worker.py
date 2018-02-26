@@ -142,6 +142,6 @@ class NoModelEvaluateWorker(Process):
                     self.save_eval_game(latest_model_name, game, winner_model)
 
             destroy_simulation_workers()
-            destroy_predicting_workers(self._gpuid)
+            destroy_predicting_workers()
         except Exception as e:
             print("EXCEPTION!!!: %s" % e)
