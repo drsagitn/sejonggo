@@ -10,7 +10,7 @@ conf = {
     'SHOW_END_GAME': False,
     'REPORT_PERIOD': 200,
     'GAMES_DIR': 'games',
-    'GPUs': [0,1,2,3],
+    'GPUs': [0,1,2,3,4,5,6,7],
     'SIMULATION_MODE': "ASYNC",
     'THREAD_SIMULATION': True,
 

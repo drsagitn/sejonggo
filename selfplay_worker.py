@@ -2,10 +2,9 @@ from multiprocessing import Process
 import time
 from nomodel_self_play import play_game_async
 from self_play import *
-from predicting_service import init_predicting_service, shutdown_predicting_service
 from predicting_queue_worker import put_name_request
 from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_queue_worker import init_predicting_worker
+from predicting_queue_worker import init_predicting_worker, destroy_predicting_workers
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -70,7 +69,6 @@ class NoModelSelfPlayWorker(Process):
             min_values = []
             for game in games:
                 directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
-                print("CHECK POINT!! %s" % directory)
                 if os.path.isdir(directory):
                     continue
                 os.makedirs(directory)
@@ -103,6 +101,6 @@ class NoModelSelfPlayWorker(Process):
                 save_self_play_data(model_name, game, game_data)
                 logger.info("Finish self-play game %s", game)
             destroy_simulation_workers()
-            shutdown_predicting_service(self._gpuid)
+            destroy_predicting_workers(self._gpuid)
         except Exception as e:
             print("EXCEPTION!!!: %s" % e)

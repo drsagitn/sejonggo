@@ -19,26 +19,8 @@ def init_predicting_worker(GPU_id):
     p.start()
 
 
-def destroy_simulation_workers():
-    if predict_pool is not None:
-        predict_pool.close()
-        predict_pool.join()
-
-
-def symmetry_predict(queue, indicator):
-    while True:
-        try:
-            boards = [queue.get_nowait() for i in range(10)]
-        except Exception:
-            pass
-        if indicator == "BEST_MODEL":
-            global best_model
-            assert best_model is not None
-            return random_symmetry_predict(best_model, boards)
-        else:
-            global latest_model
-            assert latest_model is not None
-            return random_symmetry_predict(latest_model, boards)
+def destroy_predicting_workers():
+    board_queue.put((None, None, None))
 
 
 class PredictingQueueWorker(Process):
@@ -61,7 +43,6 @@ class PredictingQueueWorker(Process):
     def run(self):
         try:
             self.load_model()
-            total = 0
             while True:
                 root = {"BEST_SYM":{'board':[], 'a':[]},
                         "LATEST_SYM":{'board':[], 'a':[]},
@@ -74,6 +55,10 @@ class PredictingQueueWorker(Process):
                 while n > 0: #  and not board_queue.empty():
                     try:
                         board, indicator, a = board_queue.get_nowait()
+                        if a is None and indicator is None and board is None:
+                            print("SHUTING DONW PREDICTING WORKER!!!")
+                            K.clear_session()
+                            return
                         root[indicator]['a'].append(a)
                         current_boards = root[indicator].get('board')
                         if current_boards is None:
@@ -114,8 +99,6 @@ class PredictingQueueWorker(Process):
                     name = self.best_model.name
                     for index, a in enumerate(root["BEST_NAME"]['a']):
                         a.send(name)
-
-
 
         except Exception as e:
             print(e)

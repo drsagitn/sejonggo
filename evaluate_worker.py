@@ -5,10 +5,9 @@ import time
 from pathlib import Path
 from evaluator import promote_best_model
 from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_service import init_predicting_service, shutdown_predicting_service
-from predicting_client import PredictingClient
+from predicting_service import init_predicting_service
 from nomodel_self_play import play_game_async
-from predicting_queue_worker import put_name_request, put_predict_request
+from predicting_queue_worker import put_name_request, destroy_predicting_workers
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -143,6 +142,6 @@ class NoModelEvaluateWorker(Process):
                     self.save_eval_game(latest_model_name, game, winner_model)
 
             destroy_simulation_workers()
-            shutdown_predicting_service(self._gpuid)
+            destroy_predicting_workers(self._gpuid)
         except Exception as e:
             print("EXCEPTION!!!: %s" % e)
