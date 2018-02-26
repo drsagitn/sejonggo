@@ -3,9 +3,9 @@ import time
 from nomodel_self_play import play_game_async
 from self_play import *
 from predicting_service import init_predicting_service, shutdown_predicting_service
-
+from predicting_queue_worker import put_name_request
 from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_client import PredictingClient
+from predicting_queue_worker import init_predicting_worker
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -56,13 +56,13 @@ class NoModelSelfPlayWorker(Process):
             os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
             os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
             # init_predicting_service(self._gpuid)
+            init_predicting_worker(self._gpuid)
             init_simulation_workers()
 
 
             n_games = conf['N_GAMES']
             energy = conf['ENERGY']
-            pc = PredictingClient()
-            model_name = pc.get_best_model_name()
+            model_name = put_name_request("BEST_NAME")
 
             desc = "Async Self play %s for %s games" % (model_name, n_games)
             games = tqdm.tqdm(range(n_games), desc=desc)
@@ -80,7 +80,7 @@ class NoModelSelfPlayWorker(Process):
                 else:
                     resign = None
                 start = datetime.datetime.now()
-                game_data = play_game_async("BEST_MODEL", "BEST_MODEL", energy, conf['STOP_EXPLORATION'], self_play=True,
+                game_data = play_game_async("BEST_SYM", "BEST_SYM", energy, conf['STOP_EXPLORATION'], self_play=True,
                                             resign_model1=resign, resign_model2=resign)
                 stop = datetime.datetime.now()
 

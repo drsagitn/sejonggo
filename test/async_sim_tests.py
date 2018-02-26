@@ -14,8 +14,9 @@ from play import (
         index2coord, game_init, get_liberties
 )
 from self_play import (
-        play_game, async_simulate
+        play_game
 )
+from nomodel_self_play import async_simulate
 
 from symmetry import (
         _id,

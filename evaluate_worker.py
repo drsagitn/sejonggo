@@ -8,7 +8,7 @@ from simulation_workers import init_simulation_workers, destroy_simulation_worke
 from predicting_service import init_predicting_service, shutdown_predicting_service
 from predicting_client import PredictingClient
 from nomodel_self_play import play_game_async
-
+from predicting_queue_worker import put_name_request, put_predict_request
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -111,9 +111,8 @@ class NoModelEvaluateWorker(Process):
             init_predicting_service(self._gpuid)
             init_simulation_workers()
 
-            pc = PredictingClient()
-            best_model_name = pc.get_best_model_name()
-            latest_model_name = pc.get_latest_model_name()
+            best_model_name = put_name_request("BEST_NAME")
+            latest_model_name = put_name_request("LATEST_NAME")
 
             if latest_model_name != best_model_name:
                 total = 0
@@ -127,7 +126,7 @@ class NoModelEvaluateWorker(Process):
                     os.makedirs(directory)
 
                     start = datetime.datetime.now()
-                    game_data = play_game_async("BEST_MODEL", "LATEST_MODEL", MCTS_SIMULATIONS, stop_exploration=0)
+                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", MCTS_SIMULATIONS, stop_exploration=0)
                     stop = datetime.datetime.now()
 
                     # Some statistics

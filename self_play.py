@@ -128,7 +128,6 @@ def mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model
         start = datetime.datetime.now()
         simulate(mcts_tree, test_board, model, MCTS_BATCH_SIZE, original_player)
         end = datetime.datetime.now()
-        print("#####simulation time: %s", end - start)
 
     # from play import show_tree
     # show_tree(None, None, mcts_tree)

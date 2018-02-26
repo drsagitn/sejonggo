@@ -2,14 +2,15 @@ import datetime
 import numpy as np
 from time import sleep
 import numpy.ma as ma
+import datetime
 
 from conf import conf
-from predicting_client import PredictingClient
 from play import (
     index2coord, make_play, game_init,
     choose_first_player,
     show_board, get_winner, new_tree, top_one_with_virtual_loss
 )
+from predicting_queue_worker import put_predict_request
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -29,7 +30,6 @@ def update_root(result, node, action):
     result['parent'] = node
     lock.release()
 
-
 def error_handler(err):
     print(err)
     raise err
@@ -38,10 +38,12 @@ def error_handler(err):
 def async_simulate(node, board, model_indicator, energy, original_player):
     from simulation_workers import process_pool, basic_tasks
     from functools import partial
+    results = []
     while energy > 0:
         action = top_one_with_virtual_loss(node)
         if action == {}:
             continue
+        # print("ENERGY %s" % energy)
         child_node = action['node']
         child_node['parent'] = None
         child_node['virtual_loss'] += 2
@@ -49,21 +51,27 @@ def async_simulate(node, board, model_indicator, energy, original_player):
         # callback_func = lambda result: update_root(result, node, action['action'])
         callback_func = partial(update_root, node=node, action=action['action'])
         # async_func = partial(basic_tasks, node=copy.deepcopy(child_node), board=board, move=action['action'], model=model, original_player=original_player)
-        process_pool.apply_async(basic_tasks, (child_node, board, action['action'], model_indicator, original_player), callback=callback_func, error_callback=error_handler)
-
+        r = process_pool.apply_async(basic_tasks, (child_node, board, action['action'], model_indicator, original_player), callback=callback_func, error_callback=error_handler)
+        results.append(r)
         # process_pool.apply_async(async_func, callback=callback_func)
         # result = basic_tasks(copy.deepcopy(child_node), np.copy(board), action['action'], model, original_player)
         # update_root(result, node, action['action'])
         energy -= 1
-    # [result.wait() for result in results]
-    while len(process_pool._cache):
-        sleep(0.001)
+    # start = datetime.datetime.now()
+    # while len(process_pool._cache):
+    #     sleep(0.001)
+    [result.wait() for result in results]
+    # end = datetime.datetime.now()
+    # print("###### WATING TIME %s", end - start)
+
 
 
 def select_play(board, energy, mcts_tree, temperature, model_indicator):
     start = datetime.datetime.now()
-    async_simulate(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
+    for i in range(4):
+        async_simulate(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
     end = datetime.datetime.now()
+    print("################TIME PER MOVE: %s", end - start)
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
         moves = []
@@ -79,8 +87,6 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator):
     elif temperature == 0:
         _, _, selected_a = max((dic['count'], dic['mean_value'], a) for a, dic in mcts_tree['subtree'].items())
 
-
-    print("################TIME PER MOVE: %s", end - start)
     return selected_a
 
 def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
@@ -102,16 +108,11 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
     if num_moves is None:
         num_moves = SIZE * SIZE * 2
 
-    pc = PredictingClient()
     for move_n in range(num_moves):
         last_value = value
         if move_n == stop_exploration:
             temperature = 0
-        print("FIRST PREDICTION %s" % current_model_indicator)
-        policies, values = pc.request_predict(current_model_indicator, board)
-        print("SURVIVED")
-        policy = policies[0]
-        value = values[0]
+        policy, value = put_predict_request(current_model_indicator, board)
         resign = resign_model1 if current_model_indicator == model1_indicator else resign_model2
         if resign and value <= resign:
             end_reason = "resign"

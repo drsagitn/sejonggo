@@ -3,7 +3,7 @@ from self_play import top_one_action, new_subtree
 from conf import conf
 from multiprocessing import Queue, Pool, Lock
 from predicting_client import PredictingClient
-
+from predicting_queue_worker import put_predict_request
 board_queue = Queue()
 subtree_queue = Queue()
 
@@ -37,12 +37,11 @@ def basic_tasks(node, board, move, model_indicator, original_player):
     for m in moves:
         x,y = index2coord(m)
         board, _ = make_play(x,y, board)
-    pc = PredictingClient()
-    policy, value = pc.request_predict(model_indicator, board, is_symmetry=True)
-    node['subtree'] = new_subtree(policy[0], board, node)
+    policy, value = put_predict_request(model_indicator, board)
+    node['subtree'] = new_subtree(policy, board, node)
 
     # backpropagation
-    v = value[0][0] if board[0, 0, 0, -1] == original_player else -value[0][0]
+    v = value if board[0, 0, 0, -1] == original_player else -value
     while True:
         node['count'] += 1
         node['value'] += v
