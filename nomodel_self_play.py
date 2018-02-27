@@ -68,7 +68,7 @@ def async_simulate(node, board, model_indicator, energy, original_player):
 
 def select_play(board, energy, mcts_tree, temperature, model_indicator):
     start = datetime.datetime.now()
-    for i in range(4):
+    for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
         async_simulate(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
     end = datetime.datetime.now()
     print("################TIME PER MOVE: %s", end - start)

@@ -62,12 +62,14 @@ class PredictingQueueWorker(Process):
                             return
                         root[indicator]['a'].append(a)
                         current_boards = root[indicator].get('board')
-                        if current_boards is None or response_now:
+                        if current_boards is None:
                             break
                         if current_boards == []:
                             root[indicator]['board'] = board
                         else:
                             root[indicator]['board'] = np.vstack((current_boards, board))
+                        if response_now:
+                            break
                         n = n - 1
                     except Exception:
                         pass
@@ -82,6 +84,7 @@ class PredictingQueueWorker(Process):
                         a.send((p[index], v[index][0]))
                 if root["BEST_SYM"]['board'] != []:
                     # tt = len(root["BEST_SYM"]['board'])
+                    # print(tt)
                     # total += tt
                     # print("%s..%s" % (tt, total))
                     p, v = random_symmetry_predict(self.best_model, root["BEST_SYM"]['board'])
