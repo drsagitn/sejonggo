@@ -54,14 +54,14 @@ class PredictingQueueWorker(Process):
                 n = 1000
                 while n > 0: #  and not board_queue.empty():
                     try:
-                        board, indicator, a = board_queue.get_nowait()
+                        board, indicator, a, response_now = board_queue.get_nowait()
                         if a is None and indicator is None and board is None:
                             print("SHUTING DONW PREDICTING WORKER!!!")
                             K.clear_session()
                             return
                         root[indicator]['a'].append(a)
                         current_boards = root[indicator].get('board')
-                        if current_boards is None:
+                        if current_boards is None or response_now:
                             break
                         if current_boards == []:
                             root[indicator]['board'] = board
@@ -116,9 +116,9 @@ def put_name_request(model_indicator):
     return name
 
 
-def put_predict_request(model_indicator, board):
+def put_predict_request(model_indicator, board, response_now=False):
     a, b = Pipe()
-    board_queue.put((board, model_indicator, a))
+    board_queue.put((board, model_indicator, a, response_now))
     p, v = b.recv()
     return p, v
 

@@ -112,7 +112,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         last_value = value
         if move_n == stop_exploration:
             temperature = 0
-        policy, value = put_predict_request(current_model_indicator, board)
+        policy, value = put_predict_request(current_model_indicator, board, response_now=True)
         resign = resign_model1 if current_model_indicator == model1_indicator else resign_model2
         if resign and value <= resign:
             end_reason = "resign"
