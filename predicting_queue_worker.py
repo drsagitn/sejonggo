@@ -5,6 +5,7 @@ import os
 from keras import backend as K
 import numpy as np
 import time
+from conf import conf
 
 
 board_queue = Queue()
@@ -51,7 +52,7 @@ class PredictingQueueWorker(Process):
                         "BEST_NAME" : {'a':[]},
                         "LATEST_NAME": {'a': []}
                         }
-                n = 1000
+                n = conf['ENERGY']
                 while n > 0: #  and not board_queue.empty():
                     try:
                         board, indicator, a, response_now = board_queue.get_nowait()
@@ -67,10 +68,9 @@ class PredictingQueueWorker(Process):
                             root[indicator]['board'] = board
                         else:
                             root[indicator]['board'] = np.vstack((current_boards, board))
+                        n = n - 1
                     except Exception:
                         pass
-                    finally:
-                        n = n - 1
 
                 if root["BEST"]['board'] != []:
                     p, v = self.best_model.predict_on_batch(root["BEST"]['board'])
