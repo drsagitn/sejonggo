@@ -21,7 +21,7 @@ def init_predicting_worker(GPU_id):
 
 
 def destroy_predicting_workers():
-    board_queue.put((None, None, None))
+    board_queue.put((None, None, None, None))
 
 
 class PredictingQueueWorker(Process):
@@ -58,7 +58,7 @@ class PredictingQueueWorker(Process):
                         board, indicator, a, response_now = board_queue.get_nowait()
                         if a is None and indicator is None and board is None:
                             print("SHUTING DONW PREDICTING WORKER!!!")
-                            K.clear_session()
+                            # K.clear_session()
                             return
                         root[indicator]['a'].append(a)
                         current_boards = root[indicator].get('board')
@@ -111,7 +111,7 @@ def return_result(p,v):
 
 def put_name_request(model_indicator):
     a, b = Pipe()
-    board_queue.put((None, model_indicator, a))
+    board_queue.put((None, model_indicator, a, True))
     name = b.recv()
     return name
 
