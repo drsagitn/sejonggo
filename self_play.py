@@ -10,7 +10,7 @@ from sgfsave import save_game_sgf
 from play import (
     legal_moves, index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner, new_tree, top_n_actions, new_subtree, top_one_action, top_one_with_virtual_loss
+    show_board, get_winner, new_tree, top_n_actions, new_subtree, top_one_action, tree_depth
 )
 from symmetry import random_symmetry_predict
 from random import random
@@ -154,7 +154,8 @@ def select_play(policy, board, mcts_simulations, mcts_tree, temperature, model):
     start = datetime.datetime.now()
     index = mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model)
     end = datetime.datetime.now()
-    print("################TIME PER MOVE: %s", end - start)
+    d = tree_depth(mcts_tree)
+    print("################TIME PER MOVE: %s   tree depth: %s" % (end - start, d))
     return index
 
 def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
