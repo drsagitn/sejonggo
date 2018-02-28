@@ -11,7 +11,7 @@ from simulation_workers import init_simulation_workers, destroy_simulation_worke
 import os
 from play import (
         color_board, _get_points, capture_group, make_play, legal_moves,
-        index2coord, game_init, get_liberties
+        index2coord, game_init, get_liberties, tree_depth
 )
 from self_play import (
         play_game, simulate,
@@ -720,6 +720,10 @@ class MCTSTestCase(unittest.TestCase):
         self.tree = tree
         init_simulation_workers()
 
+    def test_tree_depth(self):
+        d = tree_depth(self.tree)
+        assert d == 2
+
 
     def tearDown(self):
         destroy_simulation_workers()
@@ -812,6 +816,9 @@ class MCTSTestCase(unittest.TestCase):
         tree['subtree'][0]['subtree'][2]['parent'] = tree['subtree'][0]
         tree['subtree'][1]['parent'] = tree
 
+        d = tree_depth(tree)
+        assert d == 3
+
         board = self.board 
         size = conf['SIZE']
 
@@ -884,6 +891,9 @@ class MCTSTestCase(unittest.TestCase):
         tree['subtree'][1]['parent'] = tree
         tree['subtree'][1]['subtree'][0]['parent'] = tree['subtree'][1]
         tree['subtree'][1]['subtree'][2]['parent'] = tree['subtree'][1]
+
+        d = tree_depth(tree)
+        assert d == 3
 
         board = self.board 
         size = conf['SIZE']
@@ -973,6 +983,9 @@ class MCTSTestCase(unittest.TestCase):
         tree['subtree'][0]['subtree'][2]['parent'] = tree['subtree'][0]
         tree['subtree'][1]['parent'] = tree
 
+        d = tree_depth(tree)
+        assert d == 3
+
         simulate(tree, board, model, mcts_batch_size=2, original_player=1)
         self.assertEqual(tree['subtree'][0]['count'], 2)
         self.assertEqual(tree['subtree'][0]['subtree'][1]['count'], 1)
@@ -1035,6 +1048,9 @@ class MCTSTestCase(unittest.TestCase):
         tree['subtree'][1]['subtree'][0]['parent'] = tree['subtree'][1]
         tree['subtree'][1]['subtree'][2]['parent'] = tree['subtree'][1]
 
+        d = tree_depth(tree)
+        assert d == 3
+
         simulate(tree, board, model, mcts_batch_size=2, original_player=1)
         self.assertEqual(tree['subtree'][0]['count'], 1)
         self.assertEqual(tree['subtree'][0]['value'], -1)
@@ -1047,6 +1063,9 @@ class MCTSTestCase(unittest.TestCase):
         self.assertEqual(tree['mean_value'], 0)
         self.assertEqual(tree['subtree'][2]['count'], 0)
         self.assertEqual(tree['subtree'][2]['subtree'], {})
+
+        d = tree_depth(tree)
+        assert d == 4
 
 class PlayTestCase(unittest.TestCase):
     def setUp(self):

@@ -352,6 +352,15 @@ def top_n_actions(subtree, top_n):
     return max_actions
 
 
+def tree_depth(tree):
+    md = 0
+    for key, node in tree['subtree'].items():
+        d = tree_depth(node)
+        if d > md:
+            md = d
+    return md + 1
+
+
 
 def show_tree(x, y, tree, indent=''):
     if tree['parent'] is None:

@@ -53,7 +53,7 @@ class PredictingQueueWorker(Process):
                         "LATEST_NAME": {'a': []}
                         }
                 n = conf['ENERGY']
-                while n > 0: #  and not board_queue.empty():
+                while n > 0 and not board_queue.empty():
                     try:
                         board, indicator, a, response_now = board_queue.get_nowait()
                         if a is None and indicator is None and board is None:
