@@ -4,6 +4,7 @@ from time import sleep
 import numpy.ma as ma
 import datetime
 
+from multiprocessing import Process
 from conf import conf
 from play import (
     index2coord, make_play, game_init,
@@ -35,11 +36,11 @@ def error_handler(err):
     print(err)
     raise err
 
+
 def back_propagation(result, node):
     leaf, moves = result
     closest_parent = get_node_by_moves(node, moves[:-1])
-    from simulation_workers import lock
-    lock.acquire()
+    leaf['virtual_loss'] = 0
     closest_parent['subtree'][moves[-1]] = leaf
     while True:
         closest_parent['count'] += 1
@@ -49,22 +50,21 @@ def back_propagation(result, node):
             closest_parent = closest_parent['parent']
         else:
             break
-    lock.release()
 
 
 def async_simulate2(node, board, model_indicator, energy, original_player):
-    from simulation_workers import process_pool, basic_tasks2
-    from functools import partial
-    results = []
+    from simulation_workers import basic_tasks2, simulation_result_queue
+    processes = []
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
-        callback_func = partial(back_propagation, node=node)
-        r = process_pool.apply_async(basic_tasks2,
-                                     (best_leaf, board, moves, model_indicator, original_player),
-                                     callback=callback_func, error_callback=error_handler)
-        results.append(r)
+        p = Process(target=basic_tasks2, args=(best_leaf, board, moves, model_indicator, original_player))
+        p.start()
+        processes.append(p)
         energy -= 1
-    [result.wait() for result in results]
+    for i in range(len(processes)):
+        r = simulation_result_queue.get()
+        back_propagation(r, node)
+    [p.join() for p in processes]
 
 
 def async_simulate(node, board, model_indicator, energy, original_player):

@@ -2,20 +2,22 @@ from play import index2coord, make_play
 from self_play import top_one_action, new_subtree
 from conf import conf
 from multiprocessing import Queue, Pool, Lock
-from predicting_client import PredictingClient
 from predicting_queue_worker import put_predict_request
 board_queue = Queue()
 subtree_queue = Queue()
+simulation_result_queue = Queue()
 
 N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
 process_pool = None
 lock = None
+
 
 def init_simulation_workers():
     global process_pool
     global lock
     lock = Lock()
     process_pool = Pool(processes=N_SIMULATE_PROCESS, initializer=init_pool_param, initargs=(lock,))
+
 
 def init_pool_param(l):
     global lock
@@ -41,7 +43,8 @@ def basic_tasks2(node, board, moves, model_indicator, original_player):
     node['count'] += 1
     node['value'] += v
     node['mean_value'] = node['value'] / float(node['count'])
-    return node, moves
+    simulation_result_queue.put((node, moves))
+
 
 def basic_tasks(node, board, move, model_indicator, original_player):
     moves = [move]
