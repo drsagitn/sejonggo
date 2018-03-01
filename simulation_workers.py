@@ -7,7 +7,7 @@ board_queue = Queue()
 subtree_queue = Queue()
 simulation_result_queue = Queue()
 
-N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
+# N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
 process_pool = None
 lock = None
 
@@ -16,7 +16,7 @@ def init_simulation_workers():
     global process_pool
     global lock
     lock = Lock()
-    process_pool = Pool(processes=N_SIMULATE_PROCESS, initializer=init_pool_param, initargs=(lock,))
+    # process_pool = Pool(processes=N_SIMULATE_PROCESS, initializer=init_pool_param, initargs=(lock,))
 
 
 def init_pool_param(l):
