@@ -101,6 +101,6 @@ class NoModelSelfPlayWorker(Process):
                 save_self_play_data(model_name, game, game_data)
                 logger.info("Finish self-play game %s", game)
             destroy_simulation_workers()
-            destroy_predicting_workers()
+            # destroy_predicting_workers()
         except Exception as e:
             print("EXCEPTION!!!: %s" % e)

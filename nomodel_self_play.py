@@ -8,9 +8,10 @@ from conf import conf
 from play import (
     index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner, new_tree, top_one_with_virtual_loss, tree_depth
+    show_board, get_winner, new_tree, top_one_with_virtual_loss, tree_depth, top_one_action
 )
 from predicting_queue_worker import put_predict_request
+from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -33,6 +34,37 @@ def update_root(result, node, action):
 def error_handler(err):
     print(err)
     raise err
+
+def back_propagation(result, node):
+    leaf, moves = result
+    closest_parent = get_node_by_moves(node, moves[:-1])
+    from simulation_workers import lock
+    lock.acquire()
+    closest_parent['subtree'][moves[-1]] = leaf
+    while True:
+        closest_parent['count'] += 1
+        closest_parent['value'] += leaf['value']
+        closest_parent['mean_value'] = closest_parent['value'] / float(closest_parent['count'])
+        if closest_parent['parent']:
+            closest_parent = closest_parent['parent']
+        else:
+            break
+    lock.release()
+
+
+def async_simulate2(node, board, model_indicator, energy, original_player):
+    from simulation_workers import process_pool, basic_tasks2
+    from functools import partial
+    results = []
+    while energy > 0:
+        best_leaf, moves = find_best_leaf_virtual_loss(node)
+        callback_func = partial(back_propagation, node=node)
+        r = process_pool.apply_async(basic_tasks2,
+                                     (best_leaf, board, moves, model_indicator, original_player),
+                                     callback=callback_func, error_callback=error_handler)
+        results.append(r)
+        energy -= 1
+    [result.wait() for result in results]
 
 
 def async_simulate(node, board, model_indicator, energy, original_player):
@@ -69,7 +101,7 @@ def async_simulate(node, board, model_indicator, energy, original_player):
 def select_play(board, energy, mcts_tree, temperature, model_indicator):
     start = datetime.datetime.now()
     for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
-        async_simulate(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
+        async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
     print("################TIME PER MOVE: %s   tree depth: %s" % (end - start, d))

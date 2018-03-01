@@ -316,7 +316,7 @@ def top_one_with_virtual_loss(node):
         if dic['virtual_loss'] > 0:
             continue
         u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
-        v = dic['mean_value'] + u - dic['virtual_loss']
+        v = dic['mean_value'] + u
         if v > max_value:
             max_value = v
             max_action = {'action': a, 'node': dic}

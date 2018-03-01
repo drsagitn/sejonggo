@@ -21,11 +21,27 @@ def init_pool_param(l):
     global lock
     lock = l
 
+
 def destroy_simulation_workers():
     if process_pool is not None:
         process_pool.close()
         process_pool.join()
 
+
+def basic_tasks2(node, board, moves, model_indicator, original_player):
+    #  making board
+    for m in moves:
+        x,y = index2coord(m)
+        board, _ = make_play(x,y, board)
+    # predicting
+    policy, value = put_predict_request(model_indicator, board)
+    # subtree making
+    node['subtree'] = new_subtree(policy, board, node)
+    v = value if board[0, 0, 0, -1] == original_player else -value
+    node['count'] += 1
+    node['value'] += v
+    node['mean_value'] = node['value'] / float(node['count'])
+    return node, moves
 
 def basic_tasks(node, board, move, model_indicator, original_player):
     moves = [move]
