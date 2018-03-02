@@ -1,5 +1,5 @@
 import multiprocessing as mp
-import Queue as Queue_
+import queue as Queue_
 from threading import Thread
 import _multiprocessing as _mp
 import weakref
