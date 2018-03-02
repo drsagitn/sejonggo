@@ -3,9 +3,11 @@ from self_play import top_one_action, new_subtree
 from conf import conf
 from multiprocessing import Queue, Pool, Lock
 from predicting_queue_worker import put_predict_request
+import fmq
+
 board_queue = Queue()
 subtree_queue = Queue()
-simulation_result_queue = Queue()
+simulation_result_queue = fmq.Queue()
 
 # N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
 process_pool = None
