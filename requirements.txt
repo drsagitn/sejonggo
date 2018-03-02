@@ -29,4 +29,3 @@ typing==3.6.2
 wcwidth==0.1.7
 Werkzeug==0.12.2
 sgfmill==1.0.0
-fmq==0.1
