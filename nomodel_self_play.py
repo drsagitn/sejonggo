@@ -1,17 +1,13 @@
-import datetime
 import numpy as np
-from time import sleep
-import numpy.ma as ma
 import datetime
 
-from multiprocessing import Process
 from conf import conf
 from play import (
     index2coord, make_play, game_init,
     choose_first_player,
-    show_board, get_winner, new_tree, top_one_with_virtual_loss, tree_depth, top_one_action
+    show_board, get_winner, new_tree, top_one_with_virtual_loss, tree_depth
 )
-from predicting_queue_worker import put_predict_request
+from predicting_queue_worker import put_predict_request, put_name_request
 from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
 
 SIZE = conf['SIZE']
@@ -19,6 +15,7 @@ MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
 RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
 RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
+ENERGY = conf['ENERGY']
 
 
 def update_root(result, node, action):
@@ -42,10 +39,12 @@ def back_propagation(result, node):
     closest_parent = get_node_by_moves(node, moves[:-1])
     leaf['virtual_loss'] = 0
     closest_parent['subtree'][moves[-1]] = leaf
+    leaf['parent'] = closest_parent
     while True:
         closest_parent['count'] += 1
         closest_parent['value'] += leaf['value']
         closest_parent['mean_value'] = closest_parent['value'] / float(closest_parent['count'])
+        closest_parent['virtual_loss'] = 0
         if closest_parent['parent']:
             closest_parent = closest_parent['parent']
         else:
@@ -53,18 +52,23 @@ def back_propagation(result, node):
 
 
 def async_simulate2(node, board, model_indicator, energy, original_player):
-    from simulation_workers import basic_tasks2, simulation_result_queue
-    processes = []
+    from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
+    pre_bp = 0
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
-        p = Process(target=basic_tasks2, args=(best_leaf, board, moves, model_indicator, original_player))
-        p.start()
-        processes.append(p)
+        if best_leaf is None:
+            print("No best leaf at energy ", energy)
+            r = simulation_result_queue.get()
+            back_propagation(r, node)
+            pre_bp += 1
+            continue
+        best_leaf['parent'] = None
+        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player),
+                                 error_callback=error_handler)
         energy -= 1
-    for i in range(len(processes)):
+    for i in range(ENERGY - pre_bp):
         r = simulation_result_queue.get()
         back_propagation(r, node)
-    [p.join() for p in processes]
 
 
 def async_simulate(node, board, model_indicator, energy, original_player):
@@ -224,6 +228,9 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
     else:
         modelW, modelB = model1_indicator, model2_indicator
 
+    modelB_name = put_name_request(modelB)
+    modelW_name = put_name_request(modelW)
+
     if conf['SHOW_END_GAME']:
         if player == -1:
             # black played last
@@ -231,15 +238,15 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         else:
             bvalue, wvalue = last_value, value
         print("")
-        print("B:%s, W:%s" % (modelB.name, modelW.name))
+        print("B:%s, W:%s" % (modelB_name, modelW_name))
         print("Bvalue:%s, Wvalue:%s" % (bvalue, wvalue))
         print(show_board(board))
         print("Game played (%s: %s) : %s" % (winner_string, end_reason, datetime.datetime.now() - start))
 
     game_data = {
         'moves': moves,
-        'modelB_name': modelB.name,
-        'modelW_name': modelW.name,
+        'modelB_name': modelB_name,
+        'modelW_name': modelW_name,
         'winner': winner_result[winner],
         'winner_model': winner_model.name,
         'result': winner_string,

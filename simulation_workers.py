@@ -1,15 +1,14 @@
 from play import index2coord, make_play
 from self_play import top_one_action, new_subtree
 from conf import conf
-from multiprocessing import Queue, Pool, Lock
+from multiprocessing import Queue, Pool, Lock, SimpleQueue
 from predicting_queue_worker import put_predict_request
-import fmq
 
 board_queue = Queue()
 subtree_queue = Queue()
-simulation_result_queue = fmq.Queue()
+simulation_result_queue = SimpleQueue()
 
-# N_SIMULATE_PROCESS = conf['N_SIMULATE_PROCESS']
+MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
 process_pool = None
 lock = None
 
@@ -18,7 +17,7 @@ def init_simulation_workers():
     global process_pool
     global lock
     lock = Lock()
-    # process_pool = Pool(processes=N_SIMULATE_PROCESS, initializer=init_pool_param, initargs=(lock,))
+    process_pool = Pool(processes=MCTS_SIMULATIONS_PROCESSES, initializer=init_pool_param, initargs=(lock,))
 
 
 def init_pool_param(l):
@@ -33,11 +32,10 @@ def destroy_simulation_workers():
 
 
 def basic_tasks2(node, board, moves, model_indicator, original_player):
-    #  making board
     for m in moves:
-        x,y = index2coord(m)
-        board, _ = make_play(x,y, board)
-    # predicting
+        x, y = index2coord(m)
+        board, _ = make_play(x, y, board)
+        # predicting
     policy, value = put_predict_request(model_indicator, board)
     # subtree making
     node['subtree'] = new_subtree(policy, board, node)

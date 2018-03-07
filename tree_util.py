@@ -3,16 +3,24 @@ from play import top_one_with_virtual_loss
 
 def find_best_leaf_virtual_loss(node):
     moves = []
-    while node['subtree'] != {}:
-        action = top_one_with_virtual_loss(node)
-        if action == {}:
-            node['virtual_loss'] += 2
-            node = node['parent']
-            moves = moves[:-1]
-            continue
-        node = action['node']
-        moves.append(action['action'])
-    node['virtual_loss'] += 2
+    tree = node
+    try:
+        while node['subtree'] != {}:
+            action = top_one_with_virtual_loss(node)
+            if action == {}:
+                if node['parent'] is None:
+                    return None, None
+                node['virtual_loss'] = 2
+                node = node['parent']
+                moves = moves[:-1]
+                continue
+            node = action['node']
+            moves.append(action['action'])
+        node['virtual_loss'] = 2
+    except Exception as e:
+        print(e)
+        print(moves)
+        print(tree)
     return node, moves
 
 

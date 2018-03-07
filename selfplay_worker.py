@@ -4,7 +4,9 @@ from nomodel_self_play import play_game_async
 from self_play import *
 from predicting_queue_worker import put_name_request
 from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_queue_worker import init_predicting_worker, destroy_predicting_workers
+from predicting_queue_worker import init_predicting_worker
+import traceback
+import sys
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -101,7 +103,8 @@ class NoModelSelfPlayWorker(Process):
                 save_self_play_data(model_name, game, game_data)
                 logger.info("Finish self-play game %s", game)
         except Exception as e:
-            print("EXCEPTION!!!: %s" % e)
+            print("EXCEPTION in NoModelSelfPlayWorker!!!: %s" % e)
+            traceback.print_exc(file=sys.stdout)
         finally:
             destroy_simulation_workers()
             # destroy_predicting_workers()

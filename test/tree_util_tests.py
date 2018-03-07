@@ -82,6 +82,46 @@ class TreeTestCase(unittest.TestCase):
         self.assertGreater(self.tree['subtree'][0]['virtual_loss'], 0)
         self.assertEqual(move3, [1])
 
+    def test_all_leaf_busy(self):
+        tree = {
+            'id': 1,
+            'count': 0,
+            'mean_value': 0,
+            'virtual_loss': 0,
+            'value': 0,
+            'parent': None,
+            'subtree': {
+                0: {
+                    'id': 2,
+                    'count': 0,
+                    'p': 1,
+                    'value': 1,
+                    'mean_value': 0,
+                    'virtual_loss': 0,
+                    'subtree': {
+                    }
+                },
+                1: {
+                    'id': 3,
+                    'count': 0,
+                    'p': 0,
+                    'mean_value': 0,
+                    'virtual_loss': 0,
+                    'value': 0,
+                    'subtree': {}
+                }
+            }
+        }
+        tree['subtree'][0]['parent'] = tree
+        tree['subtree'][1]['parent'] = tree
+        _, _ = find_best_leaf_virtual_loss(tree)
+        _, _ = find_best_leaf_virtual_loss(tree)
+        node3, move3 = find_best_leaf_virtual_loss(tree)
+        self.assertEqual(node3, None)
+        self.assertEqual(move3, None)
+
+
+
     def test_get_leaf_by_moves(self):
         des = get_node_by_moves(self.tree, [0])
         self.assertEqual(des['id'], 2)

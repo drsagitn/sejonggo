@@ -3,7 +3,7 @@ import time
 
 def f():
     print("process start")
-    time.sleep(10)
+    # time.sleep(5)
     print("process end")
     queue.put(1)
     return
@@ -12,20 +12,20 @@ queue = mp.Queue()
 pool = mp.Pool(60)
 import fmq
 q2 = fmq.Queue()
-if __name__ == "__main__":
-    a = []
 
+def sim():
     results = []
-
     for i in range(30):
-        print("active processes", len(mp.active_children()))
         r = pool.apply_async(f)
         results.append(r)
-        # print(i)
-        # p = mp.Process(target=f)
-        # p.start()
-        # results.append(p)
     [r.wait() for r in results]
+
+
+if __name__ == "__main__":
+    for i in range(30):
+        sim()
+    print("#########done sim")
+
     # for i in range(len(results)):
     #     item = queue.get()
     #     a.append(item)
