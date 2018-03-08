@@ -10,12 +10,12 @@ test/models
 logs/
 games/
 models/
-
+sp_models/
 *.thinh-H67MU3
 
 *.h5
 
-*.log
+*.log*
 
 eval_games/
 sp_eval_games/
@@ -23,3 +23,5 @@ sp_eval_games/
 *.AppImage
 
 mcts/
+self_play_data/
+sp_self_play_data/
