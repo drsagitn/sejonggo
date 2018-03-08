@@ -218,11 +218,6 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         winner_string = "%s+%s" % (player_string[winner], abs(black_points - white_points))
     winner_result = {1: 1, -1: 0, 0: None}
 
-    if winner == 0:
-        winner_model = None
-    else:
-        winner_model = model1_indicator if (winner == 1) == model1_isblack else model2_indicator
-
     if model1_isblack:
         modelB, modelW = model1_indicator, model2_indicator
     else:
@@ -230,6 +225,11 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
 
     modelB_name = put_name_request(modelB)
     modelW_name = put_name_request(modelW)
+
+    if winner == 0:
+        winner_model = None
+    else:
+        winner_model = modelB_name if (winner == 1) == model1_isblack else modelW_name
 
     if conf['SHOW_END_GAME']:
         if player == -1:
@@ -248,7 +248,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         'modelB_name': modelB_name,
         'modelW_name': modelW_name,
         'winner': winner_result[winner],
-        'winner_model': winner_model.name,
+        'winner_model': winner_model,
         'result': winner_string,
         'resign_model1': resign_model1,
         'resign_model2': resign_model2,
