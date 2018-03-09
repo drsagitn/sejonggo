@@ -73,7 +73,10 @@ class NoModelSelfPlayWorker(Process):
                 directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
                 if os.path.isdir(directory):
                     continue
-                os.makedirs(directory)
+                try:
+                    os.makedirs(directory)
+                except Exception:
+                    continue
 
                 if random() > RESIGNATION_PERCENT:
                     resign = current_resign
