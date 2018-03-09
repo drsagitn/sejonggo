@@ -1,12 +1,12 @@
 from play import index2coord, make_play
 from self_play import top_one_action, new_subtree
 from conf import conf
-from multiprocessing import Queue, Pool, Lock, SimpleQueue
+from multiprocessing import Queue, Pool, Lock, SimpleQueue, Manager
 from predicting_queue_worker import put_predict_request
 
 board_queue = Queue()
 subtree_queue = Queue()
-simulation_result_queue = {}
+simulation_result_queue = Manager().dict()
 
 MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
 process_pool = None
