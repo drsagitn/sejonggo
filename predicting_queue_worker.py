@@ -4,16 +4,10 @@ from symmetry import random_symmetry_predict
 import os
 from keras import backend as K
 import numpy as np
-import time
 from conf import conf
 
 
 board_queue = Queue()
-result_queue = Queue()
-predict_pool = None
-lock = None
-best_model = None
-latest_model = None
 
 def init_predicting_workers(GPUs):
     for GPU_id in GPUs:
@@ -110,11 +104,6 @@ class PredictingQueueWorker(Process):
             print(e)
 
 
-def return_result(p,v):
-    for p1,v1 in zip(p,v):
-        result_queue.put((p1, v1))
-
-
 def put_name_request(model_indicator):
     if model_indicator == "BEST_SYM" or model_indicator == "BEST":
         model_indicator = "BEST_NAME"
@@ -133,9 +122,8 @@ def put_predict_request(model_indicator, board, response_now=False):
     return p, v
 
 
-
 if __name__ == "__main__":
-    init_predicting_worker(0)
+    init_predicting_workers(0)
     import time
     time.sleep(15)
 
