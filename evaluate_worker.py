@@ -4,10 +4,9 @@ from tqdm import tqdm
 import time
 from pathlib import Path
 from evaluator import promote_best_model
-from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_service import init_predicting_service
+from simulation_workers import init_simulation_workers, destroy_simulation_workers, init_simulation_workers_by_gpuid
 from nomodel_self_play import play_game_async
-from predicting_queue_worker import put_name_request, destroy_predicting_workers
+from predicting_queue_worker import put_name_request
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -104,11 +103,7 @@ class NoModelEvaluateWorker(Process):
             promote_best_model()
             return
         try:
-            # set environment
-            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-            os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
-            init_predicting_service(self._gpuid)
-            init_simulation_workers()
+            init_simulation_workers_by_gpuid(self._gpuid)
 
             best_model_name = put_name_request("BEST_NAME")
             latest_model_name = put_name_request("LATEST_NAME")
@@ -125,7 +120,7 @@ class NoModelEvaluateWorker(Process):
                     os.makedirs(directory)
 
                     start = datetime.datetime.now()
-                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", MCTS_SIMULATIONS, stop_exploration=0)
+                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", MCTS_SIMULATIONS, stop_exploration=0, gpuid=self._gpuid)
                     stop = datetime.datetime.now()
 
                     # Some statistics
@@ -142,6 +137,5 @@ class NoModelEvaluateWorker(Process):
                     self.save_eval_game(latest_model_name, game, winner_model)
 
             destroy_simulation_workers()
-            destroy_predicting_workers()
         except Exception as e:
-            print("EXCEPTION!!!: %s" % e)
+            print("EXCEPTION IN NO MODEL EVALUATION WORKER!!!: %s" % e)

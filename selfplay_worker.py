@@ -3,7 +3,7 @@ import time
 from nomodel_self_play import play_game_async
 from self_play import *
 from predicting_queue_worker import put_name_request
-from simulation_workers import init_simulation_workers, destroy_simulation_workers
+from simulation_workers import init_simulation_workers, init_simulation_workers_by_gpuid, destroy_simulation_workers
 import traceback
 import sys
 setup_logging()
@@ -53,7 +53,7 @@ class NoModelSelfPlayWorker(Process):
 
     def run(self):
         try:
-            init_simulation_workers()
+            init_simulation_workers_by_gpuid(self._gpuid)
 
             n_games = conf['N_GAMES']
             energy = conf['ENERGY']
@@ -77,7 +77,7 @@ class NoModelSelfPlayWorker(Process):
                 else:
                     resign = None
                 start = datetime.datetime.now()
-                game_data = play_game_async("BEST_SYM", "BEST_SYM", energy, conf['STOP_EXPLORATION'], self_play=True,
+                game_data = play_game_async("BEST_SYM", "BEST_SYM", energy, conf['STOP_EXPLORATION'], gpuid=self._gpuid, self_play=True,
                                             resign_model1=resign, resign_model2=resign)
                 stop = datetime.datetime.now()
 

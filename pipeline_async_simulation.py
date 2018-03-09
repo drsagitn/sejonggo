@@ -40,10 +40,12 @@ def main():
             STARTED = True
             # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", len(GPUs))
+            init_predicting_workers(GPUs)
             workers = [NoModelEvaluateWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
+            destroy_predicting_workers(GPUs)
 
             promoter = EvaluateWorker(0, task="promote_best_model")
             promoter.start()

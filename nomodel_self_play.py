@@ -51,14 +51,14 @@ def back_propagation(result, node):
             break
 
 
-def async_simulate2(node, board, model_indicator, energy, original_player):
+def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
     from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
     pre_bp = 0
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
         if best_leaf is None:
             print("No best leaf at energy ", energy)
-            r = simulation_result_queue.get()
+            r = simulation_result_queue[gpuid].get()
             back_propagation(r, node)
             pre_bp += 1
             continue
@@ -67,7 +67,7 @@ def async_simulate2(node, board, model_indicator, energy, original_player):
                                  error_callback=error_handler)
         energy -= 1
     for i in range(ENERGY - pre_bp):
-        r = simulation_result_queue.get()
+        r = simulation_result_queue[gpuid].get()
         back_propagation(r, node)
 
 
@@ -102,10 +102,10 @@ def async_simulate(node, board, model_indicator, energy, original_player):
 
 
 
-def select_play(board, energy, mcts_tree, temperature, model_indicator):
+def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     start = datetime.datetime.now()
     for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
-        async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
+        async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1], gpuid)
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
     print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
@@ -126,7 +126,7 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator):
 
     return selected_a
 
-def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
+def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration, gpuid, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
     board, player = game_init()
     moves = []
 
@@ -160,7 +160,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
             if self_play:
                 other_mcts = mcts_tree
 
-        index = select_play(board, energy, mcts_tree, temperature, current_model_indicator)
+        index = select_play(board, energy, mcts_tree, temperature, current_model_indicator, gpuid)
         x, y = index2coord(index)
 
         policy_target = np.zeros(SIZE*SIZE + 1)
