@@ -104,6 +104,7 @@ class PredictingQueueWorker(Process):
                         a.send(name)
 
         except Exception as e:
+            print("PREDICTING QUEUE WORKER EXCEPTION !!!")
             print(e)
 
 
