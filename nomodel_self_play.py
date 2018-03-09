@@ -63,7 +63,7 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
             pre_bp += 1
             continue
         best_leaf['parent'] = None
-        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player),
+        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, gpuid),
                                  error_callback=error_handler)
         energy -= 1
     for i in range(ENERGY - pre_bp):
