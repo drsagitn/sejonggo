@@ -15,13 +15,15 @@ lock = None
 best_model = None
 latest_model = None
 
-def init_predicting_worker(GPU_id):
-    p = PredictingQueueWorker(GPU_id)
-    p.start()
+def init_predicting_workers(GPUs):
+    for GPU_id in GPUs:
+        p = PredictingQueueWorker(GPU_id)
+        p.start()
 
 
-def destroy_predicting_workers():
-    board_queue.put((None, None, None, None))
+def destroy_predicting_workers(GPUs):
+    for _ in GPUs:
+        board_queue.put((None, None, None, None))
 
 
 class PredictingQueueWorker(Process):

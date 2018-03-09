@@ -4,7 +4,6 @@ from nomodel_self_play import play_game_async
 from self_play import *
 from predicting_queue_worker import put_name_request
 from simulation_workers import init_simulation_workers, destroy_simulation_workers
-from predicting_queue_worker import init_predicting_worker
 import traceback
 import sys
 setup_logging()
@@ -54,12 +53,7 @@ class NoModelSelfPlayWorker(Process):
 
     def run(self):
         try:
-            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-            os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)
-            # init_predicting_service(self._gpuid)
-            init_predicting_worker(self._gpuid)
             init_simulation_workers()
-
 
             n_games = conf['N_GAMES']
             energy = conf['ENERGY']
@@ -110,4 +104,3 @@ class NoModelSelfPlayWorker(Process):
             traceback.print_exc(file=sys.stdout)
         finally:
             destroy_simulation_workers()
-            # destroy_predicting_workers()

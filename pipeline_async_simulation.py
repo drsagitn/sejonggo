@@ -2,6 +2,7 @@ from utils import init_directories
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
+from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 import resource, sys
 import logging
 from app_log import setup_logging
@@ -22,9 +23,11 @@ def main():
             STARTED = True
             # SELF-PLAY PHASE - MULTI GPUs
             logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
+            init_predicting_workers(GPUs)
             workers = [NoModelSelfPlayWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
+            destroy_predicting_workers(GPUs)
             workers.clear()
         if STARTED or START_PHASE == "TRAINING":
             STARTED = True
