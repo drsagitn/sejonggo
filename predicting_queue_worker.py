@@ -113,6 +113,10 @@ def return_result(p,v):
 
 
 def put_name_request(model_indicator):
+    if model_indicator == "BEST_SYM" or model_indicator == "BEST":
+        model_indicator = "BEST_NAME"
+    elif model_indicator == "LATEST_SYM" or model_indicator == "LATEST":
+        model_indicator = "LATEST_NAME"
     a, b = Pipe()
     board_queue.put((None, model_indicator, a, True))
     name = b.recv()
