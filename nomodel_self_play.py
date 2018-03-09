@@ -108,7 +108,7 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator):
         async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1])
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
-    print("################TIME PER MOVE: %s   tree depth: %s" % (end - start, d))
+    print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
         moves = []
