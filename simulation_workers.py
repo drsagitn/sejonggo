@@ -6,7 +6,7 @@ from predicting_queue_worker import put_predict_request
 
 board_queue = Queue()
 subtree_queue = Queue()
-simulation_result_queue = Manager().dict()
+
 
 MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
 process_pool = None
@@ -23,7 +23,6 @@ def init_simulation_workers():
 def init_simulation_workers_by_gpuid(GPU_ID):
     global process_pool
     process_pool = Pool(processes=MCTS_SIMULATIONS_PROCESSES)
-    simulation_result_queue[GPU_ID] = SimpleQueue()
 
 
 def init_pool_param(l):
