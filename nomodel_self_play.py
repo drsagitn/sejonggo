@@ -9,6 +9,7 @@ from play import (
 )
 from predicting_queue_worker import put_predict_request, put_name_request
 from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
+from multiprocessing import SimpleQueue
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -30,7 +31,7 @@ def update_root(result, node, action):
     lock.release()
 
 def error_handler(err):
-    print(err)
+    print("Error in basic task", err)
     raise err
 
 
@@ -52,22 +53,23 @@ def back_propagation(result, node):
 
 
 def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
-    from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
+    from simulation_workers import basic_tasks2, process_pool
+    out_queue = SimpleQueue()
     pre_bp = 0
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
         if best_leaf is None:
             print("No best leaf at energy ", energy)
-            r = simulation_result_queue[gpuid].get()
+            r = out_queue.get()
             back_propagation(r, node)
             pre_bp += 1
             continue
         best_leaf['parent'] = None
-        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, gpuid),
+        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, out_queue),
                                  error_callback=error_handler)
         energy -= 1
     for i in range(ENERGY - pre_bp):
-        r = simulation_result_queue[gpuid].get()
+        r = out_queue.get()
         back_propagation(r, node)
 
 
