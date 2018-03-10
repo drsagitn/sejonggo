@@ -9,7 +9,7 @@ from play import (
 )
 from predicting_queue_worker import put_predict_request, put_name_request
 from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
-from multiprocessing import SimpleQueue
+from multiprocessing import Manager
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -54,7 +54,7 @@ def back_propagation(result, node):
 
 def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
     from simulation_workers import basic_tasks2, process_pool
-    out_queue = SimpleQueue()
+    out_queue = Manager().SimpleQueue()
     pre_bp = 0
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
