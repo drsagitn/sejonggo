@@ -102,7 +102,7 @@ def async_simulate(node, board, model_indicator, energy, original_player):
     # print("###### WATING TIME %s", end - start)
 
 
-
+from mem_top import mem_top
 def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     start = datetime.datetime.now()
     for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
@@ -110,6 +110,7 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
     print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
+    print(mem_top())
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
         moves = []
