@@ -4,11 +4,14 @@ from conf import conf
 from multiprocessing import Queue, Pool, Lock, SimpleQueue, Manager
 from predicting_queue_worker import put_predict_request
 
+MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
+GPUS = conf['GPUs']
 board_queue = Queue()
 subtree_queue = Queue()
+simulation_result_queue = {}
+for i in GPUS:
+    simulation_result_queue[i] = SimpleQueue()
 
-
-MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
 process_pool = None
 lock = None
 
@@ -36,7 +39,7 @@ def destroy_simulation_workers():
         process_pool.join()
 
 
-def basic_tasks2(node, board, moves, model_indicator, original_player, out_queue):
+def basic_tasks2(node, board, moves, model_indicator, original_player, gpuid):
     for m in moves:
         x, y = index2coord(m)
         board, _ = make_play(x, y, board)
@@ -48,7 +51,7 @@ def basic_tasks2(node, board, moves, model_indicator, original_player, out_queue
     node['count'] += 1
     node['value'] += v
     node['mean_value'] = node['value'] / float(node['count'])
-    out_queue.put((node, moves))
+    simulation_result_queue[gpuid].put((node, moves))
 
 
 def basic_tasks(node, board, move, model_indicator, original_player):
