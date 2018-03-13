@@ -57,6 +57,7 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
     from simulation_workers import basic_tasks2, process_pool
     pre_bp = 0
     reader, writer = Pipe()
+    results = []
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
         if best_leaf is None:
@@ -66,12 +67,14 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
             pre_bp += 1
             continue
         best_leaf['parent'] = None
-        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, writer),
+        r = process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, writer),
                                  error_callback=error_handler)
+        results.append(r)
         energy -= 1
     for i in range(ENERGY - pre_bp):
         r = reader.recv()
         back_propagation(r, node)
+    [r.wait() for r in results]
 
 
 def async_simulate(node, board, model_indicator, energy, original_player):
