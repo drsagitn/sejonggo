@@ -56,24 +56,27 @@ def back_propagation(result, node):
 def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
     from simulation_workers import basic_tasks2, process_pool
     pre_bp = 0
-    reader, writer = Pipe()
+    readers = []
     results = []
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)
         if best_leaf is None:
             print("No best leaf at energy ", energy)
-            r = reader.recv()
-            back_propagation(r, node)
+            reader = readers.pop()
+            out = reader.recv()
+            back_propagation(out, node)
             pre_bp += 1
             continue
         best_leaf['parent'] = None
+        reader, writer = Pipe()
+        readers.append(reader)
         r = process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, writer),
                                  error_callback=error_handler)
         results.append(r)
         energy -= 1
-    for i in range(ENERGY - pre_bp):
-        r = reader.recv()
-        back_propagation(r, node)
+    for reader in readers:
+        out = reader.recv()
+        back_propagation(out, node)
     [r.wait() for r in results]
 
 
