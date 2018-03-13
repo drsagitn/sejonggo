@@ -39,6 +39,8 @@ def back_propagation(result, node):
     leaf, moves = result
     closest_parent = get_node_by_moves(node, moves[:-1])
     leaf['virtual_loss'] = 0
+    closest_parent['subtree'][moves[-1]]['parent'] = None
+    del closest_parent['subtree'][moves[-1]]['parent']
     closest_parent['subtree'][moves[-1]] = leaf
     leaf['parent'] = closest_parent
     while True:
@@ -101,16 +103,24 @@ def async_simulate(node, board, model_indicator, energy, original_player):
     # end = datetime.datetime.now()
     # print("###### WATING TIME %s", end - start)
 
-
-from mem_top import mem_top
+import tracemalloc
+import time
 def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     start = datetime.datetime.now()
+    tracemalloc.start()
     for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
         async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1], gpuid)
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
     print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
-    print(mem_top())
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+
+    print("[ Top 10 ]")
+    for stat in top_stats[:10]:
+        print(stat)
+    time.sleep(7)
+
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
         moves = []
