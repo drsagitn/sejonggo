@@ -8,10 +8,6 @@ MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
 GPUS = conf['GPUs']
 board_queue = Queue()
 subtree_queue = Queue()
-simulation_result_queue = {}
-for i in GPUS:
-    simulation_result_queue[i] = SimpleQueue()
-
 process_pool = None
 lock = None
 
@@ -39,7 +35,7 @@ def destroy_simulation_workers():
         process_pool.join()
 
 
-def basic_tasks2(node, board, moves, model_indicator, original_player, gpuid):
+def basic_tasks2(node, board, moves, model_indicator, original_player, writer):
     for m in moves:
         x, y = index2coord(m)
         board, _ = make_play(x, y, board)
@@ -51,7 +47,7 @@ def basic_tasks2(node, board, moves, model_indicator, original_player, gpuid):
     node['count'] += 1
     node['value'] += v
     node['mean_value'] = node['value'] / float(node['count'])
-    simulation_result_queue[gpuid].put((node, moves))
+    writer.send((node, moves))
 
 
 def basic_tasks(node, board, move, model_indicator, original_player):
