@@ -2,6 +2,7 @@ from utils import init_directories
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
+from distributed_modules.distribution_config import all_slaves_finished_event, turn_on_event, ASYNC_PIPELINE_STATE
 import resource, sys
 import logging
 from app_log import setup_logging
@@ -22,9 +23,11 @@ def main():
             STARTED = True
             # SELF-PLAY PHASE - MULTI GPUs
             logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
+            turn_on_event(ASYNC_PIPELINE_STATE.SELF_PLAYING)
             workers = [SelfPlayWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
+            all_slaves_finished_event.wait()
             workers.clear()
         if STARTED or START_PHASE == "TRAINING":
             STARTED = True
@@ -37,9 +40,11 @@ def main():
             STARTED = True
             # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", len(GPUs))
+            turn_on_event(ASYNC_PIPELINE_STATE.EVALUATING)
             workers = [EvaluateWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
+            all_slaves_finished_event.wait()
             workers.clear()
 
             promoter = EvaluateWorker(0, task="promote_best_model")

@@ -5,6 +5,7 @@ conf = {
     'EVAL_DIR': 'sp_eval_games',
     'SELF_PLAY_DIR': 'sp_self_play_data',
     'LOG_DIR': 'logs',
+    'TMP_DIR': 'temp',
     'BEST_MODEL': 'best_model.h5',
     'SHOW_EACH_MOVE': False,
     'SHOW_END_GAME': False,
@@ -27,7 +28,7 @@ conf = {
     'SIZE': 19,  # board size 19 in paper
     'KOMI': 5.5,  # The komi points given to white player
     'STOP_EXPLORATION': 30,  # Number of plays after which temperature goes to 0 , 30 in paper
-    'MCTS_BATCH_SIZE': 10,  # Size of the prediction batch while exploring mcts
+    'MCTS_BATCH_SIZE': 100,  # Size of the prediction batch while exploring mcts
     'DIRICHLET_ALPHA': .03,  # The value of dirichlet coefficient in the nois of root_node of mcts simulation
     'DIRICHLET_EPSILON': .25,  # How much the noise is accounted for
     'RESIGNATION_PERCENT': .10, # 10% of the time we don't use resignation to assess resignation value

@@ -1,7 +1,8 @@
 import unittest
 from play import tree_depth
 from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
-
+from nomodel_self_play import back_propagation
+import gc
 
 class TreeTestCase(unittest.TestCase):
     def setUp(self):
@@ -134,3 +135,73 @@ class TreeTestCase(unittest.TestCase):
 
         with self.assertRaises(Exception):
             get_node_by_moves(self.tree, [0, 8])
+
+    def test_back_prop(self):
+        from collections import defaultdict
+        from gc import get_objects
+        before = defaultdict(int)
+        after = defaultdict(int)
+        for i in get_objects():
+            before[type(i)] += 1
+
+
+        tree = {
+            'id': 1,
+            'count': 0,
+            'mean_value': 0,
+            'virtual_loss': 0,
+            'value': 0,
+            'parent': None,
+            'subtree': {
+                0: {
+                    'id': 2,
+                    'count': 0,
+                    'p': 1,
+                    'value': 1,
+                    'mean_value': 0,
+                    'virtual_loss': 0,
+                    'subtree': {
+                    }
+                },
+                1: {
+                    'id': 3,
+                    'count': 0,
+                    'p': 0,
+                    'mean_value': 0,
+                    'virtual_loss': 0,
+                    'value': 0,
+                    'subtree': {}
+                }
+            }
+        }
+
+        result_node = {
+            'id': 4,
+            'count': 0,
+            'p': 0.5,
+            'value': 1,
+            'mean_value': 0,
+            'virtual_loss': 0,
+            'subtree': {
+            }
+        }
+
+        moves = [0]
+        back_propagation((result_node, moves), tree)
+        # leaked_things = [[x] for x in range(10)]
+
+        for i in get_objects():
+            after[type(i)] += 1
+        print([(k, after[k] - before[k]) for k in after if after[k] - before[k]])
+        self.assertEqual(tree['count'], 1)
+
+
+def dump_garbage():
+    print("\nGARBAGE:")
+    gc.collect()
+
+    print("\nGARBAGE OBJECTS:")
+    for x in gc.garbage:
+        s = str(x)
+        if len(s) > 80: s = s[:80]
+        print(type(x), "\n  ", s)

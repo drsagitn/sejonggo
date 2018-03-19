@@ -42,6 +42,24 @@
             "maxBytes": 10485760,
             "backupCount": 20,
             "encoding": "utf8"
+        },
+        "master_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "filename": "logs/master.log",
+            "maxBytes": 10485760,
+            "backupCount": 20,
+            "encoding": "utf8"
+        },
+        "slave_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "filename": "logs/slave.log",
+            "maxBytes": 10485760,
+            "backupCount": 20,
+            "encoding": "utf8"
         }
     },
 
@@ -49,6 +67,16 @@
         "sejonggo": {
             "level": "INFO",
             "handlers": ["gtp_file_handler"],
+            "propagate": 0
+        },
+        "master_coordinator": {
+            "level": "INFO",
+            "handlers": ["master_handler"],
+            "propagate": 0
+        },
+        "slave_coordinator": {
+            "level": "INFO",
+            "handlers": ["slave_handler"],
             "propagate": 0
         }
     },

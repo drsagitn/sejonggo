@@ -58,7 +58,10 @@ class EvaluateWorker(Process):
                     directory = os.path.join(EVAL_DIR, latest_model.name, "game_%03d" % game)
                     if os.path.isdir(directory):
                         continue
-                    os.makedirs(directory)
+                    try:
+                        os.makedirs(directory)
+                    except Exception:
+                        continue
 
                     start = datetime.datetime.now()
                     game_data = play_game(best_model, latest_model, MCTS_SIMULATIONS, stop_exploration=0)
@@ -117,7 +120,10 @@ class NoModelEvaluateWorker(Process):
                     directory = os.path.join(EVAL_DIR, latest_model_name, "game_%03d" % game)
                     if os.path.isdir(directory):
                         continue
-                    os.makedirs(directory)
+                    try:
+                        os.makedirs(directory)
+                    except Exception:
+                        continue
 
                     start = datetime.datetime.now()
                     game_data = play_game_async("BEST_SYM", "LATEST_SYM", MCTS_SIMULATIONS, stop_exploration=0, gpuid=self._gpuid)
