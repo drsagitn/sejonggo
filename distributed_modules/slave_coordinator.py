@@ -46,6 +46,9 @@ def save_model(model_name, content, err):
 
 
 def model_check_update(latest_model_name, best_model_name, mgr):
+    if latest_model_name == "" or best_model_name == "":
+        logger.info("SKIP CHECKING MODEL BECAUSE OF EMPTY NAME %s %s", latest_model_name, best_model_name)
+        return
     current_best_model = load_best_model()
     current_latest_model = load_latest_model()
 
@@ -87,10 +90,10 @@ def main():
     mgr = registerRemoteFunc()
 
     while True:
-        jobs = mgr.get_job(concurrent=len(GPUs))._getvalue()
+        jobs = mgr.get_job(concurency=len(GPUs))._getvalue()
         logger.info("GOT JOBS %", jobs)
         out_dirs = jobs['out_dirs']
-        assert len(out_dirs) <= len({GPUs})
+        assert len(out_dirs) <= len(GPUs)
         state = jobs['state']
         model_check_update(jobs['latest_model_name'], jobs['best_model_name'], mgr)
         if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
