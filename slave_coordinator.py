@@ -2,15 +2,14 @@ from multiprocessing.managers import BaseManager
 import sys
 import zipfile
 from keras import backend as K
-sys.path.append("..")
 
 from utils import init_directories
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
-from distributed_modules.distribution_config import dconf
-from distributed_modules.distribution_config import ASYNC_PIPELINE_STATE
+from distribution_config import dconf
+from distribution_config import ASYNC_PIPELINE_STATE
 from model import load_best_model, load_latest_model
 import resource
 import logging

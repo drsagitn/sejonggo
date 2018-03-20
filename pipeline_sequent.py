@@ -1,11 +1,14 @@
-from utils import init_directories, clean_up_empty
+import logging
+import resource
+import sys
+
+from app_log import setup_logging
+from distribution_config import is_slave_working, turn_on_event, ASYNC_PIPELINE_STATE
+from evaluate_worker import *
 from selfplay_worker import *
 from train_worker import *
-from evaluate_worker import *
-from distributed_modules.distribution_config import is_slave_working, turn_on_event, ASYNC_PIPELINE_STATE
-import resource, sys
-import logging
-from app_log import setup_logging
+from utils import init_directories, clean_up_empty
+
 setup_logging()
 logger = logging.getLogger(__name__)
 

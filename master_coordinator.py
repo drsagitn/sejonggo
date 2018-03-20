@@ -3,12 +3,11 @@ import os
 import time
 import zipfile
 import dbm
-sys.path.append("..")
 from multiprocessing.managers import BaseManager
 from conf import conf
-from distributed_modules.distribution_config import is_slave_working, set_slave_working
-from distributed_modules.distribution_config import dconf
-from distributed_modules.distribution_config import ASYNC_PIPELINE_STATE
+from distribution_config import set_slave_working
+from distribution_config import dconf
+from distribution_config import ASYNC_PIPELINE_STATE
 from predicting_queue_worker import put_name_request
 import logging
 from app_log import setup_logging
