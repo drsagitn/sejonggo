@@ -48,15 +48,18 @@ def put_file(file_name, file_contents):
 
 
 def get_state():
-    db = dbm.open('events', 'r')
-    self_play_event = db['self_play_event']
-    evaluate_event = db['evaluate_event']
-    db.close()
-    if self_play_event == b'1':
-        return ASYNC_PIPELINE_STATE.SELF_PLAYING
-    if evaluate_event == b'1':
-        return ASYNC_PIPELINE_STATE.EVALUATING
-    return ASYNC_PIPELINE_STATE.OTHERS
+    try:
+        db = dbm.open('events', 'r')
+        self_play_event = db['self_play_event']
+        evaluate_event = db['evaluate_event']
+        db.close()
+        if self_play_event == b'1':
+            return ASYNC_PIPELINE_STATE.SELF_PLAYING
+        if evaluate_event == b'1':
+            return ASYNC_PIPELINE_STATE.EVALUATING
+        return ASYNC_PIPELINE_STATE.OTHERS
+    except Exception:
+        return ASYNC_PIPELINE_STATE.OTHERS
 
 
 def get_model(model_name):
