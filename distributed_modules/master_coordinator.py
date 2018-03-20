@@ -2,10 +2,11 @@ import sys
 import os
 import time
 import zipfile
+import dbm
 sys.path.append("..")
 from multiprocessing.managers import BaseManager
-from distributed_modules.distribution_config import self_play_event, evaluate_event, all_slaves_finished_event
 from conf import conf
+from distributed_modules.distribution_config import is_slave_working, set_slave_working
 from distributed_modules.distribution_config import dconf
 from distributed_modules.distribution_config import ASYNC_PIPELINE_STATE
 from predicting_queue_worker import put_name_request
@@ -47,9 +48,13 @@ def put_file(file_name, file_contents):
 
 
 def get_state():
-    if self_play_event.is_set():
+    db = dbm.open('events', 'r')
+    self_play_event = db['self_play_event']
+    evaluate_event = db['evaluate_event']
+    db.close()
+    if self_play_event == b'1':
         return ASYNC_PIPELINE_STATE.SELF_PLAYING
-    if evaluate_event.is_set():
+    if evaluate_event == b'1':
         return ASYNC_PIPELINE_STATE.EVALUATING
     return ASYNC_PIPELINE_STATE.OTHERS
 
@@ -99,7 +104,7 @@ def finish_job(job_id, result_zipfile_content):
                 import shutil
                 shutil.rmtree(conf['TMP_DIR'])
                 os.makedirs(conf['TMP_DIR'])
-                all_slaves_finished_event.set()
+                set_slave_working(False)
         except Exception as e:
             print("Error while saving remote job result!")
             # TODO: clear the directory
@@ -141,7 +146,7 @@ def get_job(concurency=1):
         'latest_model_name': latest_model_name
     }
     assigned_jobs[job_id] = job
-    all_slaves_finished_event.clear()
+    set_slave_working(True)
     logger.info("ASSIGN NEW JOB. UPDATE JOB LIST %s", assigned_jobs)
     return job
 

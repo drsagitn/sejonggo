@@ -91,7 +91,7 @@ def main():
 
     while True:
         jobs = mgr.get_job(concurency=len(GPUs))._getvalue()
-        logger.info("GOT JOBS %", jobs)
+        logger.info("GOT JOBS %s", jobs)
         out_dirs = jobs['out_dirs']
         assert len(out_dirs) <= len(GPUs)
         state = jobs['state']

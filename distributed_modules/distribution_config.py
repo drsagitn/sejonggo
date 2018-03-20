@@ -1,12 +1,6 @@
 from enum import Enum
 
-import multiprocessing
-
-self_play_event = multiprocessing.Event()
-evaluate_event = multiprocessing.Event()
-all_slaves_finished_event = multiprocessing.Event()
-all_slaves_finished_event.set()
-
+import dbm
 
 dconf = {
     "MASTER_IP": "211.180.114.12",
@@ -14,6 +8,8 @@ dconf = {
     'PORT': 8989,
     'REMOTE_PASSWORD': b'SejongGoPassword'
 }
+
+
 class ASYNC_PIPELINE_STATE(Enum):
     SELF_PLAYING = 1
     EVALUATING = 2
@@ -22,16 +18,29 @@ class ASYNC_PIPELINE_STATE(Enum):
 
 
 def turn_on_event(state):
+    db = dbm.open("events", 'c')
     if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
-        self_play_event.set()
-        evaluate_event.clear()
+        db['self_play_event'] = '1'
+        db['evaluate_event'] = '0'
     elif state == ASYNC_PIPELINE_STATE.EVALUATING:
-        evaluate_event.set()
-        self_play_event.clear()
+        db['evaluate_event'] = '1'
+        db['self_play_event'] = '0'
+    db.close()
 
 
-# def turn_off_event(event):
-#     if event == "SELF_PLAY":
-#         self_play_event.clear()
-#     elif event == "EVALUATE":
-#         evaluate_event.clear()
+def set_slave_working(is_working):
+    db = dbm.open("events", 'c')
+    if is_working:
+        db['slave_working'] = '1'
+    else:
+        db['slave_working'] = '0'
+    db.close()
+
+
+def is_slave_working():
+    db = dbm.open("events", 'r')
+    r = db['slave_working']
+    db.close()
+    if r == b'1':
+        return True
+    return False

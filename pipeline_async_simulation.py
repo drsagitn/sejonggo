@@ -3,7 +3,7 @@ from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
-from distributed_modules.distribution_config import all_slaves_finished_event, turn_on_event, ASYNC_PIPELINE_STATE
+from distributed_modules.distribution_config import is_slave_working, turn_on_event, ASYNC_PIPELINE_STATE
 import resource, sys
 import logging
 from app_log import setup_logging
@@ -29,7 +29,8 @@ def main():
             workers = [NoModelSelfPlayWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
-            all_slaves_finished_event.wait()
+            while is_slave_working():
+                time.sleep(2)
             destroy_predicting_workers(GPUs)
             workers.clear()
         if STARTED or START_PHASE == "TRAINING":
@@ -49,7 +50,8 @@ def main():
             workers = [NoModelEvaluateWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
-            all_slaves_finished_event.wait()
+            while is_slave_working():
+                time.sleep(2)
             workers.clear()
             destroy_predicting_workers(GPUs)
 
