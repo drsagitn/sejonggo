@@ -1,4 +1,4 @@
-from utils import init_directories
+from utils import init_directories, clean_up_empty
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     init_directories()
+    clean_up_empty()
     resource.setrlimit(resource.RLIMIT_STACK, (2 ** 29, -1))
     sys.setrecursionlimit(10 ** 6)
     GPUs = conf['GPUs']

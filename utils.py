@@ -132,9 +132,21 @@ def init_directories():
     except:
         pass
 
+def clean_up_empty():
+    try:
+        dirs_to_clean = [conf['EVAL_DIR'], conf['SELF_PLAY_DIR']]
+        for folder in dirs_to_clean:
+            for _dir in os.listdir(folder):
+                dir_path = os.path.join(folder, _dir)
+                for d in os.listdir(dir_path):
+                    d_path = os.path.join(dir_path, d)
+                    if len(os.listdir(d_path)) == 0:
+                        os.rmdir(d_path)
+    except Exception as e:
+        print("EXCEPTION WHILE CLEANING FOLDERS!!")
+        print(e)
+
 
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
-
-
