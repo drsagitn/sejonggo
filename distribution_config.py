@@ -38,9 +38,14 @@ def set_slave_working(is_working):
 
 
 def is_slave_working():
-    db = dbm.open("events", 'r')
-    r = db['slave_working']
-    db.close()
+    try:
+        db = dbm.open("events", 'r')
+        r = db['slave_working']
+        db.close()
+    except Exception as e:
+        print("DB may not exist")
+        print(e)
+        return False
     if r == b'1':
         return True
     return False
