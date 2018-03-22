@@ -81,6 +81,9 @@ def send_finish_jobs(jobs, mgr):
     f.close()
     mgr.finish_job(job_id, c)
 
+def extract_game_number(dir):
+    s = dir.split("_")[-1]
+    return int(s)
 
 def main():
     init_directories()
@@ -100,7 +103,7 @@ def main():
         model_check_update(jobs['latest_model_name'], jobs['best_model_name'], mgr)
         if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
             logger.info("STARTING REMOTE SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
-            workers = [SelfPlayWorker(i) for i, dir in enumerate(out_dirs)]
+            workers = [SelfPlayWorker(i, one_game_only=extract_game_number(dir)) for i, dir in enumerate(out_dirs)]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
@@ -108,7 +111,7 @@ def main():
             logger.info("FINISHED SELF_PLAY JOBS %", jobs['id'])
         elif state == ASYNC_PIPELINE_STATE.EVALUATING:
             logger.info("STARTING REMOTE EVALUATION PHASE WITH %s GPUs", len(GPUs))
-            workers = [EvaluateWorker(i) for i in GPUs]
+            workers = [EvaluateWorker(i, one_game_only=extract_game_number(dir)) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
