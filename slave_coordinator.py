@@ -9,7 +9,6 @@ from train_worker import *
 from evaluate_worker import *
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 from distribution_config import dconf, ASYNC_PIPELINE_STATE, get_latest_model_name, get_best_model_name
-from model import load_best_model, load_latest_model
 import resource
 import logging
 from app_log import setup_logging
@@ -100,24 +99,20 @@ def main():
         model_check_update(jobs['latest_model_name'], jobs['best_model_name'], mgr)
         if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
             logger.info("STARTING REMOTE SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
-            init_predicting_workers(GPUs)
-            workers = [NoModelSelfPlayWorker(i) for i, dir in enumerate(out_dirs)]
+            workers = [SelfPlayWorker(i) for i, dir in enumerate(out_dirs)]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
             send_finish_jobs(jobs, mgr)
             logger.info("FINISHED SELF_PLAY JOBS %", jobs['id'])
-            destroy_predicting_workers(GPUs)
         elif state == ASYNC_PIPELINE_STATE.EVALUATING:
             logger.info("STARTING REMOTE EVALUATION PHASE WITH %s GPUs", len(GPUs))
-            init_predicting_workers(GPUs)
-            workers = [NoModelEvaluateWorker(i) for i in GPUs]
+            workers = [EvaluateWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
             workers.clear()
             send_finish_jobs(jobs, mgr)
             logger.info("FINISHED EVALUATION JOBS %", jobs["id"])
-            destroy_predicting_workers(GPUs)
         else:
             print("Unhandled state %s. Sleep 5 to wait for new state" % state)
             time.sleep(5)
