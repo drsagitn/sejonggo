@@ -36,6 +36,36 @@ def set_slave_working(is_working):
         db['slave_working'] = '0'
     db.close()
 
+def set_best_model_name(best_model_name):
+    db = dbm.open("events", 'c')
+    db['best_model'] = best_model_name
+    db.close()
+
+def set_latest_model_name(best_model_name):
+    db = dbm.open("events", 'c')
+    db['latest_model'] = best_model_name
+    db.close()
+
+
+def get_best_model_name():
+    try:
+        db = dbm.open("events", 'r')
+        best_model_name = db['best_model']
+        db.close()
+    except Exception:
+        return ""
+    return best_model_name
+
+
+def get_latest_model_name():
+    try:
+        db = dbm.open("events", 'r')
+        latest_model_name = db['latest_model']
+        db.close()
+    except Exception:
+        return ""
+    return latest_model_name
+
 
 def is_slave_working():
     try:

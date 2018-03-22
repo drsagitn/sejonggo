@@ -5,10 +5,9 @@ import zipfile
 import dbm
 from multiprocessing.managers import BaseManager
 from conf import conf
-from distribution_config import set_slave_working
+from distribution_config import set_slave_working, get_latest_model_name, get_best_model_name
 from distribution_config import dconf
 from distribution_config import ASYNC_PIPELINE_STATE
-from predicting_queue_worker import put_name_request
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -124,7 +123,7 @@ def get_job(concurency=1):
     best_model_name = ""
     if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
         SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
-        best_model_name = put_name_request("BEST_NAME")
+        best_model_name = get_best_model_name()
         n_games = conf['N_GAMES']
         for i in range(concurency):
             directory = _reserve_directory(os.path.join(SELF_PLAY_DATA, best_model_name), n_games - 1 - i)
@@ -132,8 +131,8 @@ def get_job(concurency=1):
 
     elif state == ASYNC_PIPELINE_STATE.EVALUATING:
         EVALUATE_N_GAMES = conf['EVALUATE_N_GAMES']
-        best_model_name = put_name_request("BEST_NAME")
-        latest_model_name = put_name_request("LATEST_NAME")
+        best_model_name = get_best_model_name()
+        latest_model_name = get_latest_model_name()
         n_games = conf['EVALUATE_N_GAMES']
         for i in range(concurency):
             directory = _reserve_directory(os.path.join(EVALUATE_N_GAMES, latest_model_name), n_games - 1 - i)

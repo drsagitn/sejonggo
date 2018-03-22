@@ -12,6 +12,7 @@ from keras.regularizers import l2
 import os
 import logging
 from app_log import setup_logging
+from distribution_config import set_best_model_name, set_latest_model_name
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -131,6 +132,7 @@ def load_latest_model():
     logger.debug("Loaded latest model %s", model.name)
     if model_filename.split('.')[0] != model.name:
         logger.warning(">>>>>>>> Inconsistent model name, should check!!! <<<<<<<<<")
+    set_latest_model_name(model.name)
     return model
 
 
@@ -143,6 +145,7 @@ def load_best_model():
         logger.warning("Found no best model. Initializing new model...")
         model = create_initial_model(name="model_1", self_play=False)
     logger.debug("Loaded best model %s", model.name)
+    set_best_model_name(model.name)
     return model
 
 
