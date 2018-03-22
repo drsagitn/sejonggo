@@ -54,7 +54,7 @@ def get_best_model_name():
         db.close()
     except Exception:
         return ""
-    return best_model_name
+    return best_model_name.decode("utf-8")
 
 
 def get_latest_model_name():
@@ -64,7 +64,7 @@ def get_latest_model_name():
         db.close()
     except Exception:
         return ""
-    return latest_model_name
+    return latest_model_name.decode("utf-8")
 
 
 def is_slave_working():
