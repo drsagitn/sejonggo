@@ -54,6 +54,7 @@ def model_check_update(latest_model_name, best_model_name, mgr):
         logger.info("UPDATING BEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(best_model_name)._getvalue()
         save_model(best_model_name, content, err)
+        save_model(conf['BEST_MODEL'], content, err)
     if current_latest_model_name != latest_model_name and latest_model_name != "":
         logger.info("UPDATING LATEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(latest_model_name)._getvalue()
