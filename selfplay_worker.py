@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class SelfPlayWorker(Process):
-    def __init__(self, gpuid, forever=False):
+    def __init__(self, gpuid, forever=False, one_game_only=-1):
         Process.__init__(self, name='SelfPlayProcessor')
         self._gpuid = gpuid
         self._forever = forever
+        self._one_game_only = one_game_only
 
     def run(self):
         # set environment
@@ -30,7 +31,7 @@ class SelfPlayWorker(Process):
         while True:
             if model.name != name:
                 name = model.name
-                model_self_play(model)
+                model_self_play(model, one_game_only=self._one_game_only)
             else:
                 logger.info("No new best model")
                 if self._forever:

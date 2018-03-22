@@ -16,11 +16,12 @@ EVALUATE_MARGIN = conf['EVALUATE_MARGIN']
 EVAL_DIR = conf['EVAL_DIR']
 
 class EvaluateWorker(Process):
-    def __init__(self, gpuid, forever=False, task="evaluate"):
+    def __init__(self, gpuid, forever=False, task="evaluate", one_game_only=-1):
         Process.__init__(self, name='EvaluateProcessor')
         self._gpuid = gpuid
         self._forever = forever
         self._task = task
+        self._one_game_only = one_game_only
 
     def load_model(self):
         best_model = load_best_model()
@@ -55,6 +56,8 @@ class EvaluateWorker(Process):
                 desc = "Evaluation %s vs %s" % (latest_model.name, best_model.name)
                 tq = tqdm(range(EVALUATE_N_GAMES), desc=desc)
                 for game in tq:
+                    if self._one_game_only >= 0 and tq != game:
+                        continue
                     directory = os.path.join(EVAL_DIR, latest_model.name, "game_%03d" % game)
                     if os.path.isdir(directory):
                         continue
@@ -79,6 +82,8 @@ class EvaluateWorker(Process):
 
                     # save_game_data(best_model.name, game, game_data)
                     self.save_eval_game(latest_model.name, game, winner_model)
+                    if self._one_game_only >= 0:
+                        break
             else:
                 logger.info("No new trained model")
                 if self._forever:

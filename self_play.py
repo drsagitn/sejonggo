@@ -287,7 +287,7 @@ def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=Fals
     return game_data
 
 
-def model_self_play(model):
+def model_self_play(model, one_game_only=-1):
     n_games = conf['N_GAMES']
     mcts_simulations = conf['MCTS_SIMULATIONS']
 
@@ -297,6 +297,8 @@ def model_self_play(model):
     current_resign = None
     min_values = []
     for game in games:
+        if 0 <= one_game_only and game != one_game_only:
+            continue
         directory = os.path.join(SELF_PLAY_DATA, model.name, "game_%05d" % game)
         if os.path.isdir(directory):
             continue
@@ -330,6 +332,8 @@ def model_self_play(model):
         save_self_play_data(model.name, game, game_data)
         logger.info("Finish self-play game %s", game)
         games_data.append(game_data)
+        if one_game_only >= 0:
+            break
     return games_data
 
 
