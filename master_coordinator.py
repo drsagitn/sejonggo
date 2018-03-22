@@ -64,7 +64,7 @@ def get_model(model_name):
     model_dir = conf['MODEL_DIR']
     if model_name == "BEST_MODEL":
         model_name = conf['BEST_MODEL']
-    model_path = os.path.join(model_dir, model_name)
+    model_path = os.path.join(model_dir, model_name + ".h5")
     return get_file(model_path)
 
 
