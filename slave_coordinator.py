@@ -53,11 +53,11 @@ def model_check_update(latest_model_name, best_model_name, mgr):
 
     if current_best_model.name != best_model_name:
         logger.info("UPDATING BEST MODEL FROM MASTER %s", best_model_name)
-        content, err = mgr.get_model(best_model_name)
+        content, err = mgr.get_model(best_model_name)._getvalue()
         save_model(best_model_name, content, err)
     if current_latest_model.name != latest_model_name:
         logger.info("UPDATING LATEST MODEL FROM MASTER %s", best_model_name)
-        content, err = mgr.get_model(latest_model_name)
+        content, err = mgr.get_model(latest_model_name)._getvalue()
         save_model(latest_model_name, content, err)
     K.clear_session()
     logger.info("DONE. CLEAR SESSION")
