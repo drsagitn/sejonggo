@@ -3,7 +3,7 @@ import sys
 import zipfile
 from keras import backend as K
 
-from utils import init_directories
+from utils import init_directories, clean_up_empty
 from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
@@ -49,6 +49,7 @@ def model_check_update(latest_model_name, best_model_name, mgr):
     current_best_model_name = get_best_model_name()
     current_latest_model_name = get_latest_model_name()
 
+    logger.info("CHECKING MODEL UP TO DATE")
     if current_best_model_name != best_model_name and best_model_name != "":
         logger.info("UPDATING BEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(best_model_name)._getvalue()
@@ -58,8 +59,7 @@ def model_check_update(latest_model_name, best_model_name, mgr):
         logger.info("UPDATING LATEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(latest_model_name)._getvalue()
         save_model(latest_model_name, content, err)
-    K.clear_session()
-    logger.info("DONE. CLEAR SESSION")
+    logger.info("DONE.")
 
 
 def zip_folder(dir, zip_ref):
@@ -84,6 +84,7 @@ def send_finish_jobs(jobs, mgr):
 
 def main():
     init_directories()
+    clean_up_empty()
     resource.setrlimit(resource.RLIMIT_STACK, (2 ** 29, -1))
     sys.setrecursionlimit(10 ** 6)
     GPUs = conf['GPUs']
