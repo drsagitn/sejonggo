@@ -141,6 +141,7 @@ def clean_up_empty():
                 for d in os.listdir(dir_path):
                     d_path = os.path.join(dir_path, d)
                     if len(os.listdir(d_path)) == 0:
+                        print("Clean up empty dir", d_path)
                         os.rmdir(d_path)
     except Exception as e:
         print("EXCEPTION WHILE CLEANING FOLDERS!!")

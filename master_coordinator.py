@@ -71,11 +71,11 @@ def get_model(model_name):
 def _reserve_directory(dir, number):
     while number >= 0:
         directory = os.path.join(dir, "game_%05d" % number)
-        print("Reserving dir %s" % directory)
         if os.path.isdir(directory):
             number -= 1
             continue
         try:
+            print("Reserving dir %s" % directory)
             os.makedirs(directory)
             break
         except Exception:

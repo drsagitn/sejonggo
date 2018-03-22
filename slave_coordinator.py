@@ -70,7 +70,7 @@ def zip_folder(dir, zip_ref):
 
 def send_finish_jobs(jobs, mgr):
     job_id = jobs['id']
-    file_name = job_id + ".zip"
+    file_name = str(job_id) + ".zip"
     zip_ref = zipfile.ZipFile(file_name, 'w')
     for dir in jobs['out_dirs']:
         # file_name = dir.split("/")[-1] + ".zip"
