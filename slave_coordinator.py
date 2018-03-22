@@ -50,11 +50,11 @@ def model_check_update(latest_model_name, best_model_name, mgr):
     current_best_model_name = get_best_model_name()
     current_latest_model_name = get_latest_model_name()
 
-    if current_best_model_name != best_model_name:
+    if current_best_model_name != best_model_name and best_model_name != "":
         logger.info("UPDATING BEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(best_model_name)._getvalue()
         save_model(best_model_name, content, err)
-    if current_latest_model_name != latest_model_name:
+    if current_latest_model_name != latest_model_name and latest_model_name != "":
         logger.info("UPDATING LATEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(latest_model_name)._getvalue()
         save_model(latest_model_name, content, err)
