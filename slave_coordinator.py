@@ -8,8 +8,7 @@ from selfplay_worker import *
 from train_worker import *
 from evaluate_worker import *
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
-from distribution_config import dconf
-from distribution_config import ASYNC_PIPELINE_STATE
+from distribution_config import dconf, ASYNC_PIPELINE_STATE, get_latest_model_name, get_best_model_name
 from model import load_best_model, load_latest_model
 import resource
 import logging
@@ -48,14 +47,14 @@ def model_check_update(latest_model_name, best_model_name, mgr):
     if latest_model_name == "" and best_model_name == "":
         logger.info("SKIP CHECKING MODEL BECAUSE OF EMPTY NAME %s %s", latest_model_name, best_model_name)
         return
-    current_best_model = load_best_model()
-    current_latest_model = load_latest_model()
+    current_best_model_name = get_best_model_name()
+    current_latest_model_name = get_latest_model_name()
 
-    if current_best_model.name != best_model_name:
+    if current_best_model_name != best_model_name:
         logger.info("UPDATING BEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(best_model_name)._getvalue()
         save_model(best_model_name, content, err)
-    if current_latest_model.name != latest_model_name:
+    if current_latest_model_name != latest_model_name:
         logger.info("UPDATING LATEST MODEL FROM MASTER %s", best_model_name)
         content, err = mgr.get_model(latest_model_name)._getvalue()
         save_model(latest_model_name, content, err)
