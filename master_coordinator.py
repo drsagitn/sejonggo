@@ -6,8 +6,8 @@ import dbm
 from multiprocessing.managers import BaseManager
 from conf import conf
 from distribution_config import set_slave_working, get_latest_model_name, get_best_model_name
-from distribution_config import dconf
-from distribution_config import ASYNC_PIPELINE_STATE
+from distribution_config import ASYNC_PIPELINE_STATE, dconf
+from db_util import save_json_data, load_json_data
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -89,7 +89,9 @@ def get_parent_dir(dir):
 
 
 def finish_job(job_id, result_zipfile_content):
+    assigned_jobs = load_json_data('events', 'jobs')
     j = assigned_jobs.pop(job_id, None)
+    save_json_data('events', 'jobs', assigned_jobs)
     if j is not None:
         try:
             # Save remote job zipfile result
@@ -115,7 +117,6 @@ def finish_job(job_id, result_zipfile_content):
                 shutil.rmtree(j['dir'])
 
 
-assigned_jobs = {}
 def get_job(concurency=1):
     state = get_state()
     directories = []
@@ -146,7 +147,11 @@ def get_job(concurency=1):
         'best_model_name': best_model_name,
         'latest_model_name': latest_model_name
     }
+    assigned_jobs = load_json_data('events', 'jobs')
+    if assigned_jobs is None:
+        assigned_jobs = {}
     assigned_jobs[job_id] = job
+    save_json_data('events', 'jobs', assigned_jobs)
     set_slave_working(True)
     logger.info("ASSIGN NEW JOB. UPDATE JOB LIST %s", assigned_jobs)
     return job
