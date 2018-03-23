@@ -142,7 +142,7 @@ def get_job(concurency=1):
     job_id = int(time.time())
     job = {
         'id': job_id,
-        'state': state,
+        'state': state.name,
         'out_dirs': directories,
         'best_model_name': best_model_name,
         'latest_model_name': latest_model_name

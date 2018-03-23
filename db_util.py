@@ -7,7 +7,7 @@ def save_json_data(dbname, key, json_var):
         db = dbm.open(dbname, 'c')
         db[key] = json.dumps(json_var)
     except Exception as e:
-        print(e)
+        print("EXCEPTION while saving json data to dbm", e)
         return False
     finally:
         db.close()
