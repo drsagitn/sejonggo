@@ -73,7 +73,7 @@ def is_slave_working():
         r = db['slave_working']
         db.close()
     except Exception as e:
-        print("DB may not exist")
+        print("Exception while checking for working slave. DB may not exist. Return False")
         print(e)
         return False
     if r == b'1':

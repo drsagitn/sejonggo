@@ -99,7 +99,7 @@ def finish_job(job_id, result_zipfile_content):
             put_file(zip_file, result_zipfile_content)
             # Extract zip to target folder
             zip_ref = zipfile.ZipFile(zip_file, 'r')
-            zip_ref.extractall(get_parent_dir(j[dir]))
+            zip_ref.extractall(get_parent_dir(j['dir']))
             zip_ref.close()
             if len(assigned_jobs) == 0:
                 logger.info("GOT JOB FINISH FROM SLAVE. UPDATE JOB LIST %", assigned_jobs)

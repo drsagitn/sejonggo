@@ -80,6 +80,7 @@ def send_finish_jobs(jobs, mgr):
     c = f.read()
     f.close()
     mgr.finish_job(job_id, c)
+    # should delete zip file when done
 
 def extract_game_number(dir):
     s = dir.split("_")[-1]
