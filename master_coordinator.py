@@ -170,4 +170,5 @@ if __name__ == "__main__":
     BaseManager.register("get_job", get_job)
     BaseManager.register("get_model", get_model)
     BaseManager.register("get_state", get_state)
+    BaseManager.register("finish_job", finish_job)
     start_server(PORT, REMOTE_PASSWORD)
