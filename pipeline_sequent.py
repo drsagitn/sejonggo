@@ -38,6 +38,7 @@ def main():
             STARTED = True
             # # TRAINING PHASE - MULTI GPUs
             logger.info("STARTING TRAINING PHASE with %s GPUs", len(GPUs))
+            turn_on_event(ASYNC_PIPELINE_STATE.TRAINING)
             trainer = TrainWorker([i for i in GPUs])
             trainer.start()
             trainer.join()

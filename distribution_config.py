@@ -22,9 +22,15 @@ def turn_on_event(state):
     if state == ASYNC_PIPELINE_STATE.SELF_PLAYING:
         db['self_play_event'] = '1'
         db['evaluate_event'] = '0'
+        db['training'] = '0'
     elif state == ASYNC_PIPELINE_STATE.EVALUATING:
         db['evaluate_event'] = '1'
         db['self_play_event'] = '0'
+        db['training'] = '0'
+    elif state == ASYNC_PIPELINE_STATE.TRAINING:
+        db['training'] = '1'
+        db['self_play_event'] = '0'
+        db['evaluate_event'] = '0'
     db.close()
 
 
