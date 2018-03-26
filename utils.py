@@ -131,6 +131,10 @@ def init_directories():
         os.mkdir(conf['SELF_PLAY_DIR'])
     except:
         pass
+    try:
+        os.mkdir(conf['TMP_DIR'])
+    except:
+        pass
 
 def clean_up_empty():
     try:
