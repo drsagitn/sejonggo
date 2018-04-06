@@ -37,7 +37,7 @@ conf = {
         'user':'miruware',
         'host': '211.180.114.12',
         'creds':'miruware@',
-        'dest': ''
+        'dest': '/home/miruware/go/sejonggo'
     },
 
     ### TRAIN ###
@@ -46,11 +46,11 @@ conf = {
     'NUM_WORKERS': 64,  # We use this many GPU workers so split the task, 64 in paper. This is actually num of iteration, should be set so as NUM_WORKER * BATCH_SIZE = NUM OF SAMPLES IN A DATASET = 25k * num of move of each game
     'HISTOGRAM_FREQ': 0,  # Shows the histograms in Tensorboard. For debugging
     'VALIDATION_SPLIT': 0,  # Needed if you want histograms in Tensorboard.
-    'SELF_PLAY_SERVER': {
+    'TRAINING_SERVER': {
             'user':'miruware',
             'host': '211.180.114.9',
             'creds':'miruware@',
-            'dest': ''
+            'dest': '/home/miruware/go/sejonggo'
     },
 
     ### EVALUATOR ###
