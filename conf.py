@@ -42,7 +42,7 @@ conf = {
 
     ### TRAIN ###
     'EPOCHS_PER_SAVE': 500,  # A model will be saved to be evaluated this amount of epochs, 1000 in paper
-    'TRAIN_BATCH_SIZE': 512,  # Batch size in the training phase, 32 in paper
+    'TRAIN_BATCH_SIZE': 32,  # Batch size in the training phase, 32 in paper
     'NUM_WORKERS': 64,  # We use this many GPU workers so split the task, 64 in paper. This is actually num of iteration, should be set so as NUM_WORKER * BATCH_SIZE = NUM OF SAMPLES IN A DATASET = 25k * num of move of each game
     'HISTOGRAM_FREQ': 0,  # Shows the histograms in Tensorboard. For debugging
     'VALIDATION_SPLIT': 0,  # Needed if you want histograms in Tensorboard.
