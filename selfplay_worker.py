@@ -57,6 +57,7 @@ class NoModelSelfPlayWorker(Process):
             init_simulation_workers_by_gpuid(self._gpuid)
 
             n_games = conf['N_GAMES']
+            game_range = conf['GAME_RANGE']
             energy = conf['ENERGY']
             model_name = put_name_request("BEST_NAME")
 
@@ -64,7 +65,7 @@ class NoModelSelfPlayWorker(Process):
             games = tqdm.tqdm(range(n_games), desc=desc)
             current_resign = None
             min_values = []
-            for game in games:
+            for game in range(game_range[0], game_range[1]):
                 directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
                 if os.path.isdir(directory):
                     continue

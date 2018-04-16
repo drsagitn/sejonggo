@@ -13,7 +13,7 @@ class DirectoriesSync(object):
         self.scp(r + ' ' + self.localDir + ' ' + self.remoteSite['user'] + '@' + self.remoteSite['host'] + ':' + self.remoteSite['dest'], self.remoteSite['creds'])
 
     def scp(self, cmd, password=None):
-        print('scp ' + cmd)
+        print('scp -c blowfish ' + cmd)
         child = pexpect.spawn('scp ' + cmd, timeout=300)
 
         expect = ['The authenticity of host', 'Permission denied', 'password', 'refused', pexpect.EOF, pexpect.TIMEOUT]

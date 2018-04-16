@@ -7,8 +7,9 @@ from keras.layers import (
 from keras.optimizers import SGD
 from keras import backend as K
 from keras.models import Model, load_model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.regularizers import l2
+
 import os
 import logging
 from app_log import setup_logging
@@ -25,6 +26,14 @@ REGULARIZERS = {
     'bias_regularizer': l2(L2_EPSILON),
 }
 
+
+class ParallelModelCheckpoint(ModelCheckpoint):
+    def __init__(self, path, monitor, verbose, save_best_only, mode, save_weights_only):
+        super().__init__(path, monitor=monitor, verbose=verbose, save_best_only=save_best_only, mode=mode, save_weights_only=save_weights_only)
+
+    def set_model(self, model):
+        original_model = model.get_layer('sequential_1')
+        super().set_model(original_model)
 
 def residual_block(input_, node_name):
     with tf.name_scope(node_name):
