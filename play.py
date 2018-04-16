@@ -353,6 +353,8 @@ def top_n_actions(subtree, top_n):
 
 
 def tree_depth(tree):
+    if tree['subtree'] is None:
+        return 1
     md = 0
     for key, node in tree['subtree'].items():
         d = tree_depth(node)
