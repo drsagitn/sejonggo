@@ -4,7 +4,7 @@ from conf import conf
 from multiprocessing import Queue, Pool, Lock, SimpleQueue, Manager
 from predicting_queue_worker import put_predict_request
 
-MCTS_SIMULATIONS_PROCESSES = conf['MCTS_SIMULATIONS_PROCESSES']
+MCTS_SIMULATIONS_PROCESSES = conf['ENERGY']
 GPUS = conf['GPUs']
 board_queue = Queue()
 subtree_queue = Queue()
