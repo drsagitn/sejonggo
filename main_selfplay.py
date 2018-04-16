@@ -1,9 +1,12 @@
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
+from utils import init_directories, clean_up_empty
 
 
 def main():
+    init_directories()
+    clean_up_empty()
     # self-play and evaluate new trained model
     GPUs = conf['GPUs']
     # SELF-PLAY
