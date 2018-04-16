@@ -62,10 +62,10 @@ class NoModelSelfPlayWorker(Process):
             model_name = put_name_request("BEST_NAME")
 
             desc = "Async Self play %s for %s games" % (model_name, n_games)
-            games = tqdm.tqdm(range(n_games), desc=desc)
+            games = tqdm.tqdm(range(game_range[0], game_range[1]), desc=desc)
             current_resign = None
             min_values = []
-            for game in range(game_range[0], game_range[1]):
+            for game in games:
                 directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
                 if os.path.isdir(directory):
                     continue
