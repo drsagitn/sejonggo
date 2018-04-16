@@ -55,21 +55,29 @@ def sync_game_data(operating_dir, model_name, game_name):
     remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
     remote_server['dest'] = os.path.join(remote_server['dest'], operating_dir, model_name)
     local_dir = os.path.join(operating_dir, model_name, game_name)
-    print('Syncing game data...')
+    print('Sending game data to training server. Game ', game_name)
     d = DirectoriesSync(local_dir, remote_server)
     d.push_remote_site()
-    print("Finish syncing data.")
+    print("Finish sending data.")
 
 
-def sync_all_game_data(operating_dir, model_name):
+def sync_all_game_data(operating_dir, model_name=None):
     #  Sync game from Self-play Server to Training Server
+    model_name_list = []
+    if model_name is None:
+        for model_dir in os.listdir(operating_dir):
+            model_name_list.append(model_dir)
+    else:
+        model_name_list = [model_name]
     remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
     remote_server['dest'] = os.path.join(remote_server['dest'], operating_dir)
-    local_dir = os.path.join(operating_dir, model_name)
-    print('Syncing all game data of model...')
-    d = DirectoriesSync(local_dir, remote_server)
-    d.push_remote_site()
-    print("Finish syncing data.")
+
+    for name in model_name_list:
+        local_dir = os.path.join(operating_dir, name)
+        print('Sending game data to training server. Model data ', name)
+        d = DirectoriesSync(local_dir, remote_server)
+        d.push_remote_site()
+    print("Finish sending data.")
 
 
 def main():
