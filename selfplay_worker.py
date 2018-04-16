@@ -1,11 +1,20 @@
 from multiprocessing import Process
 import time
 from nomodel_self_play import play_game_async
-from self_play import *
+import datetime
+import tqdm
+import os
+from conf import conf
+from model import load_best_model
 from predicting_queue_worker import put_name_request
 from simulation_workers import init_simulation_workers, init_simulation_workers_by_gpuid, destroy_simulation_workers
+from scpy import sync_game_data
+from sgfsave import save_self_play_data
 import traceback
 import sys
+import logging
+import random
+from app_log import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -26,6 +35,8 @@ class SelfPlayWorker(Process):
             init_simulation_workers()
 
         name = ""
+        from self_play import model_self_play
+        from keras import backend as K
         model = load_best_model()
         logger.info("Loaded %s", model.name)
         while True:
@@ -55,6 +66,9 @@ class NoModelSelfPlayWorker(Process):
     def run(self):
         try:
             init_simulation_workers_by_gpuid(self._gpuid)
+            SELF_PLAY_DIR = conf['SELF_PLAY_DIR']
+            RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
+            RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
 
             n_games = conf['N_GAMES']
             game_range = conf['GAME_RANGE']
@@ -66,7 +80,8 @@ class NoModelSelfPlayWorker(Process):
             current_resign = None
             min_values = []
             for game in games:
-                directory = os.path.join(SELF_PLAY_DATA, model_name, "game_%05d" % game)
+                game_name = "game_%05d" % game
+                directory = os.path.join(SELF_PLAY_DIR, model_name, game_name)
                 if os.path.isdir(directory):
                     continue
                 try:
@@ -101,6 +116,9 @@ class NoModelSelfPlayWorker(Process):
                 games.set_description(desc + " %s moves %.2fs/move " % (moves, speed))
                 save_self_play_data(model_name, game, game_data)
                 logger.info("Finish self-play game %s", game)
+                if conf['TRAINING_SERVER']:
+                    sync_game_data(SELF_PLAY_DIR, model_name, game_name)
+
         except Exception as e:
             print("EXCEPTION in NoModelSelfPlayWorker!!!: %s" % e)
             traceback.print_exc(file=sys.stdout)

@@ -11,10 +11,9 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.regularizers import l2
 
 import os
+from distribution_config import set_best_model_name, set_latest_model_name
 import logging
 from app_log import setup_logging
-from distribution_config import set_best_model_name, set_latest_model_name
-
 setup_logging()
 logger = logging.getLogger(__name__)
 
