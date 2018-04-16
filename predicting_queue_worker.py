@@ -2,7 +2,7 @@ from multiprocessing import Process, Queue, Pipe
 from model import load_best_model, load_latest_model
 from symmetry import random_symmetry_predict
 import os
-from keras import backend as K
+import time
 import numpy as np
 from conf import conf
 
@@ -41,6 +41,8 @@ class PredictingQueueWorker(Process):
         try:
             self.load_model()
             while True:
+                if board_queue.empty():
+                    time.sleep(0.1)
                 root = {"BEST_SYM":{'board':[], 'a':[]},
                         "LATEST_SYM":{'board':[], 'a':[]},
                         "BEST":{'board':[], 'a':[]},
@@ -124,7 +126,6 @@ def put_predict_request(model_indicator, board, response_now=False):
 
 if __name__ == "__main__":
     init_predicting_workers(0)
-    import time
     time.sleep(15)
 
     board = np.ones((1, 19, 19, 17), dtype=np.float32)
