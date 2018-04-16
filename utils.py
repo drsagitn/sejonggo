@@ -116,6 +116,10 @@ def str_coord(c):
 
 def init_directories():
     try:
+        os.mkdir("logs")
+    except:
+        pass
+    try:
         os.mkdir(conf['MODEL_DIR'])
     except:
         pass
