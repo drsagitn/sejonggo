@@ -74,9 +74,10 @@ def sync_all_game_data(operating_dir, model_name=None):
 
     for name in model_name_list:
         local_dir = os.path.join(operating_dir, name)
-        print('Sending game data to training server. Model data ', name)
-        d = DirectoriesSync(local_dir, remote_server)
-        d.push_remote_site()
+        if len(os.listdir(local_dir)) > 0: # if dir not empty
+            print('Sending game data to training server. Model data ', name)
+            d = DirectoriesSync(local_dir, remote_server)
+            d.push_remote_site()
     print("Finish sending data.")
 
 
