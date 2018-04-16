@@ -13,7 +13,7 @@ from sgfsave import save_self_play_data
 import traceback
 import sys
 import logging
-import random
+from random import random
 from app_log import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
