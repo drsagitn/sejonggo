@@ -38,9 +38,9 @@ def back_propagation(result, node):
     leaf, moves = result
     closest_parent = get_node_by_moves(node, moves[:-1])
     leaf['virtual_loss'] = 0
-    closest_parent['subtree'][moves[-1]]['parent'] = None
-    del closest_parent['subtree'][moves[-1]]['parent']
-    closest_parent['subtree'][moves[-1]] = leaf
+    closest_parent['subtree'][moves[-1]]['parent'] = None  # cut old leaf node
+    del closest_parent['subtree'][moves[-1]]['parent']  # also delete it
+    closest_parent['subtree'][moves[-1]] = leaf  # attach new leaf node
     leaf['parent'] = closest_parent
     while True:
         closest_parent['count'] += 1
@@ -54,6 +54,8 @@ def back_propagation(result, node):
 
 
 def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
+    if node['subtree'] == {}:
+        return
     from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
     pre_bp = 0
     while energy > 0:
