@@ -415,6 +415,6 @@ def new_subtree(policy, board, parent, add_noise=False):
             'parent': parent,
             'virtual_loss': 0
         }
-    if len(leaf) == 1: # if there is only one possible move left (move of skip) the return subtree = None to stop simulation
-        return None
+    if len(leaf) == 1: # if there is only one possible move left (move of skip) the return subtree = {} to stop simulation
+        return {}
     return leaf
