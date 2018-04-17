@@ -58,7 +58,7 @@ def main():
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
         if curr_loss[0] < best_loss:
             print("Model improves. Validation loss from {} to {}. Save this model as {}".format(best_loss, curr_loss[0], new_name))
-            best_loss = curr_loss
+            best_loss = curr_loss[0]
             model.name = new_name.split('.')[0]
             model.save(os.path.join(conf['MODEL_DIR'], new_name))
             base_name, index = model.name.split('_')
