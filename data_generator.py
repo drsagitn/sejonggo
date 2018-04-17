@@ -26,7 +26,7 @@ def get_training_desc():
         for f in files:
             full_filename = os.path.join(root, f)
             all_files.append(full_filename)
-    x_train, x_test = train_test_split(all_files, test_size=0.2, random_state=2)
+    x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
     return {'train': x_train, 'validation': x_test}
 
 

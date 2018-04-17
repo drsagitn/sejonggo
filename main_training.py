@@ -50,18 +50,19 @@ def main():
         callbacks_list = []
 
         pmodel.fit_generator(generator=training_generator,
-                             validation_data=validation_generator,
+                             # validation_data=validation_generator,
                              use_multiprocessing=True,
                              workers=NUM_WORKERS, epochs=EPOCHS_PER_SAVE,
                              callbacks=callbacks_list)
 
-        curr_loss = model.evaluate_generator(generator=validation_generator)
-        if curr_loss < best_loss:
+        curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
+        if curr_loss[0] < best_loss:
+            print("Model improves. Validation loss from {} to {}. Save this model as {}".format(best_loss, curr_loss[0]), new_name)
             best_loss = curr_loss
             model.name = new_name.split('.')[0]
             model.save(os.path.join(conf['MODEL_DIR'], new_name))
             base_name, index = model.name.split('_')
-            logger.info("Save New model %s", new_name)
+            logger.info("Saved new model %s", new_name)
 
 if __name__ == "__main__":
     main()
