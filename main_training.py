@@ -44,9 +44,9 @@ def main():
               'shuffle': True}
     while True:
         new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
-        partition, labels = get_training_desc()
-        training_generator = DataGenerator(partition['train'], labels, **params)
-        validation_generator = DataGenerator(partition['validation'], labels, **params)
+        partition = get_training_desc()
+        training_generator = DataGenerator(partition['train'], None, **params)
+        validation_generator = DataGenerator(partition['validation'], None, **params)
         callbacks_list = []
 
         pmodel.fit_generator(generator=training_generator,
