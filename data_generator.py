@@ -7,6 +7,7 @@ import os
 
 def get_training_desc():
     # find best model name (latest model in self-play dir)
+    best_model_name = None
     for filename in os.listdir(conf['SELF_PLAY_DIR']):
         try:
             name = filename.split('.')[0] # remove .h5
@@ -16,7 +17,8 @@ def get_training_desc():
                 index = i
         except:
             continue
-
+    if not best_model_name:
+        raise FileNotFoundError("Can not find self-play directory")
     all_files = []
     for root, dirs, files in os.walk(os.path.join(conf['SELF_PLAY_DIR'], best_model_name)):
         for f in files:
