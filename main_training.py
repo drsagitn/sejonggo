@@ -33,7 +33,7 @@ def main():
         model = load_latest_model()
 
     base_name, index = model.name.split('_')
-    best_loss = Inf
+    smallest_loss = Inf
 
     pmodel = multi_gpu_model(model, gpus=n_gpu)
     opt = SGD(lr=1e-4, momentum=0.9)
@@ -56,9 +56,9 @@ def main():
                              callbacks=callbacks_list)
 
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
-        if curr_loss[0] < best_loss:
-            print("Model improves. Validation loss from {} to {}. Save this model as {}".format(best_loss, curr_loss[0], new_name))
-            best_loss = curr_loss[0]
+        if curr_loss[0] < smallest_loss:
+            print("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
+            smallest_loss = curr_loss[0]
             model.name = new_name.split('.')[0]
             model.save(os.path.join(conf['MODEL_DIR'], new_name))
             base_name, index = model.name.split('_')
