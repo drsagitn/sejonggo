@@ -5,9 +5,11 @@ import h5py
 from sklearn.model_selection import train_test_split
 import os
 
+
 def get_training_desc():
     # find best model name (latest model in self-play dir)
     best_model_name = None
+    index = 0
     for filename in os.listdir(conf['SELF_PLAY_DIR']):
         try:
             name = filename.split('.')[0] # remove .h5
