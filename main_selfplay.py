@@ -2,7 +2,7 @@ from predicting_queue_worker import init_predicting_workers, destroy_predicting_
 from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
 from utils import init_directories, clean_up_empty
-from scpy import sync_all_game_data
+from scpy import sync_all_game_data, retrieve_model
 
 def main():
     init_directories()
@@ -11,11 +11,13 @@ def main():
     # self-play and evaluate new trained model
     GPUs = conf['GPUs']
     # SELF-PLAY
-    init_predicting_workers(GPUs)
-    workers = [NoModelSelfPlayWorker(i) for i in GPUs]
-    for p in workers: p.start()
-    for p in workers: p.join()
-    destroy_predicting_workers()
+    while True:
+        init_predicting_workers(GPUs)
+        workers = [NoModelSelfPlayWorker(i) for i in GPUs]
+        for p in workers: p.start()
+        for p in workers: p.join()
+        destroy_predicting_workers()
+        retrieve_model() # get best_model from training server
 
     # EVALUATE
     # get latest trained model from training server

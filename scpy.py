@@ -12,6 +12,10 @@ class DirectoriesSync(object):
         r = '-r'
         self.scp(r + ' ' + self.localDir + ' ' + self.remoteSite['user'] + '@' + self.remoteSite['host'] + ':' + self.remoteSite['dest'], self.remoteSite['creds'])
 
+    def pull_remote_site(self):
+        r = '-r'
+        self.scp(r + ' ' + self.remoteSite['user'] + '@' + self.remoteSite['host'] + ':' + self.remoteSite['dest']+ ' ' + self.localDir, self.remoteSite['creds'])
+
     def scp(self, cmd, password=None):
         print('scp -c blowfish ' + cmd)
         child = pexpect.spawn('scp ' + cmd, timeout=300)
@@ -48,6 +52,16 @@ def sync_model(model_name=conf['BEST_MODEL']):
     print('Syncing model %s to remote place %s', local_model_file, remote_server['host'], remote_server['dest'])
     d = DirectoriesSync(local_model_file, remote_server)
     d.push_remote_site()
+
+
+def retrieve_model(model_name=conf['BEST_MODEL']):
+    #  Sync trained model from Training Server to Self-play Server
+    remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
+    remote_server['dest'] = os.path.join(remote_server['dest'], conf['MODEL_DIR'], model_name)
+    local_dir = conf['MODEL_DIR']
+    print('Retrieving model {} from remote training server {}'.format(model_name, remote_server['host'] + remote_server['dest']))
+    d = DirectoriesSync(local_dir, remote_server)
+    d.pull_remote_site()
 
 
 def sync_game_data(operating_dir, model_name, game_name):
@@ -93,5 +107,6 @@ def main():
     d.push_remote_site()
 
 if __name__ == "__main__":
-    sync_all_game_data(conf['SELF_PLAY_DIR'], "model_111")
+    retrieve_model()
+    # sync_all_game_data(conf['SELF_PLAY_DIR'], "model_111")
     # main()
