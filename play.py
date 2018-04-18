@@ -375,6 +375,7 @@ def show_tree(x, y, tree, indent=''):
 
 def new_tree(policy, board, add_noise=False):
     mcts_tree = {
+        'index': -1,
         'count': 0,
         'value': 0,
         'mean_value': 0,
