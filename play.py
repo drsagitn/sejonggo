@@ -313,7 +313,7 @@ def top_one_with_virtual_loss(node):
     max_value = -100
     max_action = {}
     for a, dic in subtree.items():
-        if dic['virtual_loss'] > 0:
+        if dic['virtual_loss'] > 0 and dic['index'] == node['index']: # we don't select simulating node and node with same index with its father (same moving)
             continue
         u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
         v = dic['mean_value'] + u
@@ -407,6 +407,7 @@ def new_subtree(policy, board, parent, add_noise=False):
             continue
 
         leaf[move] = {
+            'index': move,
             'count': 0,
             'value': 0,
             'mean_value': 0,
@@ -415,6 +416,5 @@ def new_subtree(policy, board, parent, add_noise=False):
             'parent': parent,
             'virtual_loss': 0
         }
-    if len(leaf) == 2: # if there is only two possible moves left (one move and one skip) the return subtree = {} to stop simulation
-        return {}
+
     return leaf

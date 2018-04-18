@@ -11,7 +11,6 @@ def main():
     init_directories()
     clean_up_empty()
     sync_all_game_data(conf['SELF_PLAY_DIR'])
-    # self-play and evaluate new trained model
     GPUs = conf['GPUs']
     # SELF-PLAY
     while True:
@@ -20,7 +19,7 @@ def main():
         for p in workers: p.start()
         for p in workers: p.join()
         destroy_predicting_workers()
-        retrieve_model() # get best_model from training server
+        retrieve_model()  # get best_model from training server
 
     # EVALUATE
     # get latest trained model from training server
