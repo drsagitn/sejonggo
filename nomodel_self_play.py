@@ -59,9 +59,10 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
     from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
     pre_bp = 0
     while energy > 0:
-        best_leaf, moves = find_best_leaf_virtual_loss(node)
-        if len(best_leaf['subtree']) < 3:  # skip simulating leaf node with too few moves. This happen when game ending
+        best_leaf, moves = find_best_leaf_virtual_loss(node)  # leaf is node with value = 0, count = 0, child = {}
+        if best_leaf['count'] > 0:  # already simulated leaf node
             energy -= 1
+            pre_bp += 1
             continue
         if best_leaf is None:
             print("No best leaf at energy ", energy)
