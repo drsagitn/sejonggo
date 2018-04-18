@@ -3,8 +3,11 @@ from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
 from utils import init_directories, clean_up_empty
 from scpy import sync_all_game_data, retrieve_model
+import sys
+
 
 def main():
+    sys.setrecursionlimit(2000)
     init_directories()
     clean_up_empty()
     sync_all_game_data(conf['SELF_PLAY_DIR'])
