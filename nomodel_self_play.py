@@ -60,7 +60,7 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
     pre_bp = 0
     while energy > 0:
         best_leaf, moves = find_best_leaf_virtual_loss(node)  # leaf is node with value = 0, count = 0, child = {}
-        if best_leaf['count'] > 0:  # already simulated leaf node
+        if best_leaf is not None and best_leaf['count'] > 0:  # already simulated leaf node
             energy -= 1
             pre_bp += 1
             continue
