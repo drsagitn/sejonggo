@@ -7,6 +7,7 @@ from conf import conf
 import logging
 from data_generator import DataGenerator, get_training_desc
 from model import load_latest_model, loss, SGD
+from scpy import sync_model
 from app_log import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -61,8 +62,9 @@ def main():
             smallest_loss = curr_loss[0]
             model.name = new_name.split('.')[0]
             model.save(os.path.join(conf['MODEL_DIR'], new_name))
-            base_name, index = model.name.split('_')
             logger.info("Saved new model %s", new_name)
+            sync_model(new_name)  # copy to other self-play servers
+            base_name, index = model.name.split('_')
 
 if __name__ == "__main__":
     main()
