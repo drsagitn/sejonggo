@@ -1,8 +1,4 @@
-import logging
 import resource
-import sys
-
-from app_log import setup_logging
 from distribution_config import is_slave_working, turn_on_event, ASYNC_PIPELINE_STATE
 from evaluate_worker import *
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
@@ -26,7 +22,6 @@ def main():
     while True:
         if STARTED or START_PHASE == "SELF-PLAY":
             STARTED = True
-            # SELF-PLAY PHASE - MULTI GPUs
             logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.SELF_PLAYING)
             init_predicting_workers(GPUs)
@@ -39,7 +34,6 @@ def main():
             workers.clear()
         if STARTED or START_PHASE == "TRAINING":
             STARTED = True
-            # # TRAINING PHASE - MULTI GPUs
             logger.info("STARTING TRAINING PHASE with %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.TRAINING)
             trainer = TrainWorker([i for i in GPUs])
@@ -47,7 +41,6 @@ def main():
             trainer.join()
         if STARTED or START_PHASE == "EVALUATION":
             STARTED = True
-            # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.EVALUATING)
             init_predicting_workers(GPUs)

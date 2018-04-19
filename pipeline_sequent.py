@@ -25,7 +25,6 @@ def main():
     while True:
         if STARTED or START_PHASE == "SELF-PLAY":
             STARTED = True
-            # SELF-PLAY PHASE - MULTI GPUs
             logger.info("STARTING SELF_PLAY PHASE WITH %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.SELF_PLAYING)
             workers = [SelfPlayWorker(i) for i in GPUs]
@@ -36,7 +35,6 @@ def main():
             workers.clear()
         if STARTED or START_PHASE == "TRAINING":
             STARTED = True
-            # # TRAINING PHASE - MULTI GPUs
             logger.info("STARTING TRAINING PHASE with %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.TRAINING)
             trainer = TrainWorker([i for i in GPUs])
@@ -44,7 +42,6 @@ def main():
             trainer.join()
         if STARTED or START_PHASE == "EVALUATION":
             STARTED = True
-            # EVALUATION PHASE - MULTI GPUs
             logger.info("STARTING EVALUATION PHASE WITH %s GPUs", len(GPUs))
             turn_on_event(ASYNC_PIPELINE_STATE.EVALUATING)
             workers = [EvaluateWorker(i) for i in GPUs]

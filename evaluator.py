@@ -39,7 +39,6 @@ def evaluate(best_model, tested_model):
 
         save_game_data(best_model.name, game, game_data)
 
-
     if wins/total > EVALUATE_MARGIN:
         print("We found a new best model : %s!" % tested_model.name)
         elect_model_as_best_model(tested_model)
