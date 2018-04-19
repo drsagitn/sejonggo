@@ -54,9 +54,7 @@ def main():
                 time.sleep(2)
             workers.clear()
 
-            promoter = EvaluateWorker(0, task="promote_best_model")
-            promoter.start()
-            promoter.join()
+            promote_best_model()
 
 
 if __name__ == "__main__":

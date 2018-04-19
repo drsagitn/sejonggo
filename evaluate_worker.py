@@ -24,11 +24,10 @@ EVALUATE_MARGIN = conf['EVALUATE_MARGIN']
 EVAL_DIR = conf['EVAL_DIR']
 
 class EvaluateWorker(Process):
-    def __init__(self, gpuid, forever=False, task="evaluate", one_game_only=-1):
+    def __init__(self, gpuid, forever=False, one_game_only=-1):
         Process.__init__(self, name='EvaluateProcessor')
         self._gpuid = gpuid
         self._forever = forever
-        self._task = task
         self._one_game_only = one_game_only
 
     def load_model(self):
@@ -44,9 +43,6 @@ class EvaluateWorker(Process):
         Path(filepath).touch()  # can use os.mknod(filepath) but will throw exception if file existed
 
     def run(self):
-        if self._task == "promote_best_model":
-            promote_best_model()
-            return
         # set environment
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self._gpuid)

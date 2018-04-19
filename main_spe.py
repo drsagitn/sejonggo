@@ -1,10 +1,11 @@
+import sys
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
-from evaluate_worker import NoModelEvaluateWorker, EvaluateWorker
+from evaluate_worker import NoModelEvaluateWorker
 from utils import init_directories, clean_up_empty
-from scpy import sync_all_game_data, retrieve_model
-import sys
+from scpy import sync_all_game_data
+from evaluator import promote_best_model
 
 
 def main():
@@ -31,10 +32,7 @@ def main():
         workers.clear()
         destroy_predicting_workers(GPUs)
 
-        # PROMOTE BEST MODEL
-        promoter = EvaluateWorker(0, task="promote_best_model")
-        promoter.start()
-        promoter.join()
+        promote_best_model()
         START_PHASE = ""
 
 

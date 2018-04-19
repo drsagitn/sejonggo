@@ -59,9 +59,7 @@ def main():
             workers.clear()
             destroy_predicting_workers(GPUs)
 
-            promoter = EvaluateWorker(0, task="promote_best_model")
-            promoter.start()
-            promoter.join()
+            promote_best_model()
 
 
 if __name__ == "__main__":
