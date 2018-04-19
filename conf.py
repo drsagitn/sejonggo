@@ -50,7 +50,7 @@ conf = {
     'SELF_PLAY_SERVER': [
         {
             'user':'miruware',
-            'host': '211.180.114.12',
+            'host': '211.180.114.9',
             'creds':'miruware!',
             'dest': '/home/miruware/go/sejonggo'
         },
@@ -69,7 +69,7 @@ conf = {
     ],
     'TRAINING_SERVER': {
                 'user':'miruware',
-                'host': '211.180.114.9',
+                'host': '211.180.114.12',
                 'creds':'miruware!',
                 'dest': '/home/miruware/go/sejonggo'
     },
