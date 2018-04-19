@@ -17,7 +17,7 @@ class DirectoriesSync(object):
         self.scp(r + ' ' + self.remoteSite['user'] + '@' + self.remoteSite['host'] + ':' + self.remoteSite['dest']+ ' ' + self.localDir, self.remoteSite['creds'])
 
     def scp(self, cmd, password=None):
-        print('scp -c blowfish ' + cmd)
+        print('scp ' + cmd)
         child = pexpect.spawn('scp ' + cmd, timeout=300)
 
         expect = ['The authenticity of host', 'Permission denied', 'password', 'refused', pexpect.EOF, pexpect.TIMEOUT]
@@ -108,6 +108,6 @@ def main():
     d.push_remote_site()
 
 if __name__ == "__main__":
-    retrieve_model()
+    sync_all_game_data(conf['SELF_PLAY_DIR'])
     # sync_all_game_data(conf['SELF_PLAY_DIR'], "model_111")
     # main()
