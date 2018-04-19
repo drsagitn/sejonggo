@@ -157,3 +157,5 @@ class NoModelEvaluateWorker(Process):
             destroy_simulation_workers()
         except Exception as e:
             print("EXCEPTION IN NO MODEL EVALUATION WORKER!!!: %s" % e)
+            import traceback
+            traceback.print_exc()
