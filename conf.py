@@ -8,7 +8,7 @@ conf = {
     'TMP_DIR': 'temp',
     'BEST_MODEL': 'best_model.h5',
     'SHOW_EACH_MOVE': False,
-    'SHOW_END_GAME': False,
+    'SHOW_END_GAME': True,
     'REPORT_PERIOD': 200,
     'GAMES_DIR': 'games',
     'GPUs': [0,1,2,3,4,5,6,7],
