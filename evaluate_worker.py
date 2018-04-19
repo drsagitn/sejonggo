@@ -1,12 +1,18 @@
 from multiprocessing import Process
-from self_play import *
+from model import load_best_model, load_latest_model
 from tqdm import tqdm
 import time
+import datetime
+import os
 from pathlib import Path
+from self_play import play_game
 from evaluator import promote_best_model
 from simulation_workers import init_simulation_workers, destroy_simulation_workers, init_simulation_workers_by_gpuid
 from nomodel_self_play import play_game_async
 from predicting_queue_worker import put_name_request
+from conf import conf
+from app_log import setup_logging
+import logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -94,7 +100,6 @@ class EvaluateWorker(Process):
             latest_model, best_model = self.load_model()
 
         destroy_simulation_workers()
-        K.clear_session()
 
 class NoModelEvaluateWorker(Process):
     def __init__(self, gpuid, task="evaluate"):
