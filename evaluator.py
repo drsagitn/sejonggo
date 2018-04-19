@@ -3,11 +3,9 @@ from conf import conf
 import os
 from tqdm import tqdm
 import datetime
-from model import load_best_model, load_model
 import shutil
 import logging
 from app_log import setup_logging
-from model import loss
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -71,17 +69,11 @@ def promote_best_model(cleanup=True):
         _, index = model_name.split('_')
         if result[model_name] > conf['EVALUATE_MARGIN']:
             logger.info('We have new best model %s', model_name)
-            save_as_best_model(model_name)
+            shutil.copyfile(os.path.join(conf['MODEL_DIR'], model_name), os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL']))
             if cleanup:
                 clean_up_result(result)
             return
     logger.info("No new best model. Current result: %s", result)
-
-
-def save_as_best_model(model_name):
-    full_filename = os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL'])
-    model = load_model(os.path.join(conf['MODEL_DIR'], model_name + '.h5'), custom_objects={'loss': loss})
-    model.save(full_filename)
 
 
 def clean_up_result(result):
