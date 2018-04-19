@@ -46,12 +46,12 @@ class DirectoriesSync(object):
 
 def sync_model(model_name=conf['BEST_MODEL']):
     #  I am Training Server, I want to send a model to ALL Self-play Servers
-    remote_servers = {**conf['SELF_PLAY_SERVER']}  # Shallow copy conf to variable
     local_model_file = os.path.join(conf['MODEL_DIR'], model_name)
-    for rs in remote_servers:
-        rs['dest'] = os.path.join(rs['dest'], conf['MODEL_DIR'])
-        print('Syncing model %s to remote place %s', local_model_file, rs['host'], rs['dest'])
-        d = DirectoriesSync(local_model_file, rs)
+    for rs in conf['SELF_PLAY_SERVER']:
+        rs_copy = {**rs}  # Shallow copy conf to variable
+        rs_copy['dest'] = os.path.join(rs_copy['dest'], conf['MODEL_DIR'])
+        print('Syncing model %s to remote place %s', local_model_file, rs_copy['host'], rs_copy['dest'])
+        d = DirectoriesSync(local_model_file, rs_copy)
         d.push_remote_site()
 
 
@@ -108,6 +108,6 @@ def main():
     d.push_remote_site()
 
 if __name__ == "__main__":
-    sync_all_game_data(conf['SELF_PLAY_DIR'])
+    sync_model("model_187.h5")
     # sync_all_game_data(conf['SELF_PLAY_DIR'], "model_111")
     # main()
