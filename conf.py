@@ -47,12 +47,26 @@ conf = {
     'SGF_ENABLED': True,
 
     ### DISTRIBUTED SYSTEM CONFIG
-    'SELF_PLAY_SERVER': {
-        'user':'miruware',
-        'host': '211.180.114.12',
-        'creds':'miruware!',
-        'dest': '/home/miruware/go/sejonggo'
-    },
+    'SELF_PLAY_SERVER': [
+        {
+            'user':'miruware',
+            'host': '211.180.114.12',
+            'creds':'miruware!',
+            'dest': '/home/miruware/go/sejonggo'
+        },
+        {
+            'user':'miruware',
+            'host': '211.180.114.146',
+            'creds':'miruware!',
+            'dest': '/home/miruware/go/sejonggo'
+        },
+        {
+            'user':'miruware',
+            'host': '211.180.114.147',
+            'creds':'miruware!',
+            'dest': '/home/miruware/go/sejonggo'
+        },
+    ],
     'TRAINING_SERVER': {
                 'user':'miruware',
                 'host': '211.180.114.9',

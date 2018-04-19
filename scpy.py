@@ -46,12 +46,13 @@ class DirectoriesSync(object):
 
 def sync_model(model_name=conf['BEST_MODEL']):
     #  Sync trained model from Training Server to Self-play Server
-    remote_server = {**conf['SELF_PLAY_SERVER']}  # Shallow copy conf to variable
-    remote_server['dest'] = os.path.join(remote_server['dest'], conf['MODEL_DIR'])
+    remote_servers = {**conf['SELF_PLAY_SERVER']}  # Shallow copy conf to variable
     local_model_file = os.path.join(conf['MODEL_DIR'], model_name)
-    print('Syncing model %s to remote place %s', local_model_file, remote_server['host'], remote_server['dest'])
-    d = DirectoriesSync(local_model_file, remote_server)
-    d.push_remote_site()
+    for rs in remote_servers:
+        rs['dest'] = os.path.join(rs['dest'], conf['MODEL_DIR'])
+        print('Syncing model %s to remote place %s', local_model_file, rs['host'], rs['dest'])
+        d = DirectoriesSync(local_model_file, rs)
+        d.push_remote_site()
 
 
 def retrieve_model(model_name=conf['BEST_MODEL']):
