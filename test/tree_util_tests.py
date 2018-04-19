@@ -7,7 +7,7 @@ import gc
 class TreeTestCase(unittest.TestCase):
     def setUp(self):
         tree = {
-            'id': 1,
+            'index': -1,
             'count': 0,
             'mean_value': 0,
             'virtual_loss': 0,
@@ -15,7 +15,7 @@ class TreeTestCase(unittest.TestCase):
             'parent': None,
             'subtree': {
                 0: {
-                    'id': 2,
+                    'index': 2,
                     'count': 0,
                     'p': 1,
                     'value': 1,
@@ -23,7 +23,7 @@ class TreeTestCase(unittest.TestCase):
                     'virtual_loss': 0,
                     'subtree': {
                         3: {
-                            'id': 4,
+                            'index': 4,
                             'count': 0,
                             'p': 1,
                             'value': 1,
@@ -32,7 +32,7 @@ class TreeTestCase(unittest.TestCase):
                             'subtree': {}
                         },
                         4: {
-                            'id': 5,
+                            'index': 5,
                             'count': 0,
                             'p': 0,
                             'mean_value': 0,
@@ -43,7 +43,7 @@ class TreeTestCase(unittest.TestCase):
                     }
                 },
                 1: {
-                    'id': 3,
+                    'index': 3,
                     'count': 0,
                     'p': 0,
                     'mean_value': 0,
@@ -68,24 +68,24 @@ class TreeTestCase(unittest.TestCase):
 
     def test_find_best_leaf(self):
         node, move = find_best_leaf_virtual_loss(self.tree)
-        self.assertEqual(node['id'], 4)
+        self.assertEqual(node['index'], 4)
         self.assertGreater(node['virtual_loss'], 0)
         self.assertEqual(move, [0, 3])
 
         node2, move2 = find_best_leaf_virtual_loss(self.tree)
-        self.assertEqual(node2['id'], 5)
+        self.assertEqual(node2['index'], 5)
         self.assertGreater(node2['virtual_loss'], 0)
         self.assertEqual(move2, [0, 4])
 
         node3, move3 = find_best_leaf_virtual_loss(self.tree)
-        self.assertEqual(node3['id'], 3)
+        self.assertEqual(node3['index'], 3)
         self.assertGreater(node3['virtual_loss'], 0)
         self.assertGreater(self.tree['subtree'][0]['virtual_loss'], 0)
         self.assertEqual(move3, [1])
 
     def test_all_leaf_busy(self):
         tree = {
-            'id': 1,
+            'index': -1,
             'count': 0,
             'mean_value': 0,
             'virtual_loss': 0,
@@ -93,7 +93,7 @@ class TreeTestCase(unittest.TestCase):
             'parent': None,
             'subtree': {
                 0: {
-                    'id': 2,
+                    'index': 2,
                     'count': 0,
                     'p': 1,
                     'value': 1,
@@ -103,7 +103,7 @@ class TreeTestCase(unittest.TestCase):
                     }
                 },
                 1: {
-                    'id': 3,
+                    'index': 3,
                     'count': 0,
                     'p': 0,
                     'mean_value': 0,
@@ -125,13 +125,13 @@ class TreeTestCase(unittest.TestCase):
 
     def test_get_leaf_by_moves(self):
         des = get_node_by_moves(self.tree, [0])
-        self.assertEqual(des['id'], 2)
+        self.assertEqual(des['index'], 2)
 
         des = get_node_by_moves(self.tree, [0, 4])
-        self.assertEqual(des['id'], 5)
+        self.assertEqual(des['index'], 5)
 
         des = get_node_by_moves(self.tree, [1])
-        self.assertEqual(des['id'], 3)
+        self.assertEqual(des['index'], 3)
 
         with self.assertRaises(Exception):
             get_node_by_moves(self.tree, [0, 8])
