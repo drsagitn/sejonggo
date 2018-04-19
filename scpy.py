@@ -45,7 +45,7 @@ class DirectoriesSync(object):
 
 
 def sync_model(model_name=conf['BEST_MODEL']):
-    #  Sync trained model from Training Server to Self-play Server
+    #  I am Training Server, I want to send a model to ALL Self-play Servers
     remote_servers = {**conf['SELF_PLAY_SERVER']}  # Shallow copy conf to variable
     local_model_file = os.path.join(conf['MODEL_DIR'], model_name)
     for rs in remote_servers:
@@ -56,7 +56,7 @@ def sync_model(model_name=conf['BEST_MODEL']):
 
 
 def retrieve_model(model_name=conf['BEST_MODEL']):
-    #  Sync trained model from Training Server to Self-play Server
+    #  I am Self-play Server, I want to get a model from Training Server
     remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
     remote_server['dest'] = os.path.join(remote_server['dest'], conf['MODEL_DIR'], model_name)
     local_dir = conf['MODEL_DIR']
@@ -66,7 +66,7 @@ def retrieve_model(model_name=conf['BEST_MODEL']):
 
 
 def sync_game_data(operating_dir, model_name, game_name):
-    #  Sync game from Self-play Server to Training Server
+    #  I am Self-play Server I want to send my one-game data to Training Server
     remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
     remote_server['dest'] = os.path.join(remote_server['dest'], operating_dir, model_name)
     local_dir = os.path.join(operating_dir, model_name, game_name)
@@ -77,7 +77,7 @@ def sync_game_data(operating_dir, model_name, game_name):
 
 
 def sync_all_game_data(operating_dir, model_name=None):
-    #  Sync game from Self-play Server to Training Server
+    #  I am Self-play Server, I want to send all my game data to Training Server
     model_name_list = []
     if model_name is None:
         for model_dir in os.listdir(operating_dir):
