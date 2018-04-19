@@ -32,8 +32,8 @@ def main():
         workers.clear()
         destroy_predicting_workers(GPUs)
 
-        promote_best_model()
-        START_PHASE = ""
+        if promote_best_model():
+            START_PHASE = ""  # there are new best model so we doing self-play in next loop
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ class DirectoriesSync(object):
 
 
 def sync_model(model_name=conf['BEST_MODEL']):
-    #  I am Training Server, I want to send a model to ALL Self-play Servers
+    #  I am Training Server or SPE, I want to send a model to ALL Self-play Servers
     local_model_file = os.path.join(conf['MODEL_DIR'], model_name)
     for rs in conf['SELF_PLAY_SERVER']:
         rs_copy = {**rs}  # Shallow copy conf to variable

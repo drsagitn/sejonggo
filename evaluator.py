@@ -4,6 +4,7 @@ import os
 from tqdm import tqdm
 import datetime
 import shutil
+from scpy import sync_model
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -69,10 +70,12 @@ def promote_best_model(cleanup=True):
         if result[model_name] > conf['EVALUATE_MARGIN']:
             logger.info('We have new best model %s', model_name)
             shutil.copyfile(os.path.join(conf['MODEL_DIR'], model_name), os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL']))
+            sync_model()  # copy best model to other self-play servers
             if cleanup:
                 clean_up_result(result)
-            return
+            return True
     logger.info("No new best model. Current result: %s", result)
+    return False
 
 
 def clean_up_result(result):
