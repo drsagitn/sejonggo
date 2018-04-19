@@ -21,6 +21,19 @@ def main():
         for p in workers: p.join()
         destroy_predicting_workers()
 
+        # EVALUATE
+        init_predicting_workers(GPUs) # re-init predicting worker to run with latest trained model (sent from train server)
+        workers = [NoModelEvaluateWorker(i) for i in GPUs]
+        for p in workers: p.start()
+        for p in workers: p.join()
+        workers.clear()
+        destroy_predicting_workers(GPUs)
+
+        # PROMOTE BEST MODEL
+        promoter = EvaluateWorker(0, task="promote_best_model")
+        promoter.start()
+        promoter.join()
+
 
 if __name__ == "__main__":
     main()
