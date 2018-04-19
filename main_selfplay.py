@@ -10,7 +10,6 @@ def main():
     sys.setrecursionlimit(2000)
     init_directories()
     clean_up_empty()
-    sync_all_game_data(conf['SELF_PLAY_DIR'])
     GPUs = conf['GPUs']
     while True:
         # SELF-PLAY
