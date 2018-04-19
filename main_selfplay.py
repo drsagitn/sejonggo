@@ -1,9 +1,8 @@
 from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
-from evaluate_worker import NoModelEvaluateWorker, EvaluateWorker
 from utils import init_directories, clean_up_empty
-from scpy import sync_all_game_data, retrieve_model
+from scpy import sync_all_game_data
 import sys
 
 

@@ -13,16 +13,18 @@ def main():
     clean_up_empty()
     sync_all_game_data(conf['SELF_PLAY_DIR'])
     GPUs = conf['GPUs']
+    START_PHASE = "EVALUATING"
     while True:
-        # SELF-PLAY
-        init_predicting_workers(GPUs)
-        workers = [NoModelSelfPlayWorker(i) for i in GPUs]
-        for p in workers: p.start()
-        for p in workers: p.join()
-        destroy_predicting_workers()
+        if START_PHASE != "EVALUATING":
+            # SELF-PLAY
+            init_predicting_workers(GPUs)
+            workers = [NoModelSelfPlayWorker(i) for i in GPUs]
+            for p in workers: p.start()
+            for p in workers: p.join()
+            destroy_predicting_workers()
 
         # EVALUATE
-        init_predicting_workers(GPUs) # re-init predicting worker to run with latest trained model (sent from train server)
+        init_predicting_workers(GPUs)  # re-init predicting worker to run with latest trained model (sent from train server)
         workers = [NoModelEvaluateWorker(i) for i in GPUs]
         for p in workers: p.start()
         for p in workers: p.join()
@@ -33,6 +35,7 @@ def main():
         promoter = EvaluateWorker(0, task="promote_best_model")
         promoter.start()
         promoter.join()
+        START_PHASE = ""
 
 
 if __name__ == "__main__":

@@ -1,30 +1,51 @@
 import multiprocessing as mp
 import time
+from utils import fb
 
-def f():
-    print("process start")
-    # time.sleep(5)
-    print("process end")
-    queue.put(1)
-    return
+def error_handler(err):
+    print("Error in basic task", err)
+    raise err
 
-queue = mp.Queue()
-pool = mp.Pool(60)
-import fmq
-q2 = fmq.Queue()
+pool = mp.Pool(300)
+
 
 def sim():
-    results = []
-    for i in range(30):
-        r = pool.apply_async(f)
-        results.append(r)
-    [r.wait() for r in results]
+    print("sim")
+    try:
+        reader, writer = mp.Pipe()
+        results = []
+        energy = 300
+        print("sim1")
+        while energy > 0:
+            r = pool.apply_async(fb, (writer,), error_callback=error_handler)
+            results.append(r)
+            energy -= 1
+        print("sim2")
+        for i in range(300):
+            r = reader.recv()
+            print(r)
+        print("sim3")
+        [r.wait() for r in results]
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":
-    for i in range(30):
-        sim()
-    print("#########done sim")
+    p = mp.Process(target=sim)
+    print("OK")
+    p.start()
+    p.join()
+
+
+    # results = []
+    # reader, writer = mp.Pipe()
+    # for i in range(300):
+    #     r = pool.apply_async(faaaa, (writer,i), error_callback=error_handler)
+    #     results.append(r)
+    # for i in range(300):
+    #     print(reader.recv())
+    # [r.wait() for r in results]
+    # print("#########done sim")
 
     # for i in range(len(results)):
     #     item = queue.get()

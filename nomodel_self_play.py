@@ -108,12 +108,8 @@ def async_simulate(node, board, model_indicator, energy, original_player):
     # end = datetime.datetime.now()
     # print("###### WATING TIME %s", end - start)
 
-# import tracemalloc
-# import time
-from play import show_tree
 def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     start = datetime.datetime.now()
-    # tracemalloc.start()
     for i in range(int(conf['MCTS_SIMULATIONS']/conf['ENERGY'])):
         async_simulate2(mcts_tree, np.copy(board), model_indicator, energy, board[0, 0, 0, -1], gpuid)
     end = datetime.datetime.now()
@@ -122,8 +118,6 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
         print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
     except Exception as ex:
         print(ex)
-        show_tree(0,0, mcts_tree)
-
 
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())

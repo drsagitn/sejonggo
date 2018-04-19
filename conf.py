@@ -10,7 +10,7 @@ conf = {
     'SHOW_EACH_MOVE': False,
     'SHOW_END_GAME': True,
     'REPORT_PERIOD': 200,
-    'GAMES_DIR': 'games',
+    'GAMES_DIR': 'sp_eval_games',
     'GPUs': [0,1,2,3,4,5,6,7],
     'SIMULATION_MODE': "ASYNC",
     'THREAD_SIMULATION': True,
