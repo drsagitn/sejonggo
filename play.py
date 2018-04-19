@@ -313,7 +313,7 @@ def top_one_with_virtual_loss(node):
     max_value = -100
     max_action = {}
     for a, dic in subtree.items():
-        if dic['virtual_loss'] > 0 or dic['index'] == node['index']: # we don't select simulating node and node with same index with its father (same moving)
+        if dic['virtual_loss'] > 0:
             continue
         u = Cpuct * dic['p'] * total_n / (1. + dic['count'])
         v = dic['mean_value'] + u
