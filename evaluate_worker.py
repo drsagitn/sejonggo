@@ -147,8 +147,8 @@ class NoModelEvaluateWorker(Process):
                     int(wins / total * 100), (stop - start).seconds / moves)
                     tq.set_description(new_desc)
 
-                    game_name = "eval_" + str(game)
-                    save_game_data(latest_model_name, game_name, game_data)  # save game data to self-play folder for training
+                    game_name = "eval_game_%03d" % game
+                    save_game_data(latest_model_name, game, game_data, game_name="eval_game")  # save game data to self-play folder for training
                     self.save_eval_game(latest_model_name, game, winner_model)  # save game result for statistic
                     if conf['TRAINING_SERVER']:
                         sync_game_data(conf['SELF_PLAY_DIR'], latest_model_name, game_name)

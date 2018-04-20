@@ -213,10 +213,8 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if conf['SHOW_EACH_MOVE']:
             # Inverted here because we already swapped players
             color = "W" if player == 1 else "B"
-
-            print("%s(%s,%s)" % (color, x, y))
-            print("")
-            show_board(board)
+            print("%s(%s,%s) p:%s  v:%s " % (color, x, y, policy[index], value))
+            print(show_board(board))
             print("")
 
 

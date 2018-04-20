@@ -13,19 +13,19 @@ logger = logging.getLogger(__name__)
 SIZE = conf['SIZE']
 SELF_PLAY_DATA = conf['SELF_PLAY_DIR']
 
-def save_file(model_name, game_n, move_data, winner):
+def save_file(model_name, game_n, move_data, winner, game_name="game"):
     board = move_data['board']
     policy_target = move_data['policy']
     player = move_data['player']
     value_target = 1 if winner == player else -1
     move = move_data['move_n']
-    directory = os.path.join(conf["GAMES_DIR"], model_name, "game_%03d" % game_n, "move_%03d" % move)
+    directory = os.path.join(conf["GAMES_DIR"], model_name, game_name % "_%03d" % game_n, "move_%03d" % move)
     try:
         os.makedirs(directory)
     except OSError:
         while True:
             game_n += 1
-            directory = os.path.join(conf['GAMES_DIR'], model_name, "game_%03d" % game_n, "move_%03d" % move)
+            directory = os.path.join(conf['GAMES_DIR'], model_name, game_name % "_%03d" % game_n, "move_%03d" % move)
             try:
                 os.makedirs(directory)
                 break
@@ -38,10 +38,10 @@ def save_file(model_name, game_n, move_data, winner):
         f.create_dataset('value_target', data=np.array(value_target), dtype=np.float32)
 
 
-def save_game_data(model_name, game_n, game_data):
+def save_game_data(model_name, game_n, game_data, game_name="game"):
     winner = game_data['winner']
     for move_data in game_data['moves']:
-        save_file(model_name, game_n, move_data, winner)
+        save_file(model_name, game_n, move_data, winner, game_name)
     if conf['SGF_ENABLED']:
         save_game_sgf(model_name, game_n, game_data)
 
