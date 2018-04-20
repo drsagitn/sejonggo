@@ -122,7 +122,7 @@ class NoModelEvaluateWorker(Process):
             if latest_model_name != best_model_name:
                 total = 0
                 wins = 0
-                desc = "Evaluation %s vs %s" % (latest_model_name, best_model_name)
+                desc = "Evaluation %s vs %s for %s games" % (latest_model_name, best_model_name, EVALUATE_N_GAMES)
                 tq = tqdm(range(EVALUATE_N_GAMES), desc=desc)
                 for game in tq:
                     directory = os.path.join(EVAL_DIR, latest_model_name, "game_%03d" % game)
@@ -134,7 +134,7 @@ class NoModelEvaluateWorker(Process):
                         continue
 
                     start = datetime.datetime.now()
-                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", MCTS_SIMULATIONS, stop_exploration=0, gpuid=self._gpuid)
+                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", conf['ENERGY'], stop_exploration=0, gpuid=self._gpuid)
                     stop = datetime.datetime.now()
 
                     # Some statistics
