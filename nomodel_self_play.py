@@ -160,6 +160,10 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if move_n == stop_exploration:
             temperature = 0
         policy, value = put_predict_request(current_model_indicator, board, response_now=True)
+        if conf['SHOW_EACH_MOVE']:
+            pindex = [i for i, j in enumerate(policy) if j == max(policy)][0]  # get index of max policy
+            x, y = index2coord(pindex)  # try to see where this policy advise to go
+            print("%s to play max_p:%s  v:%s max_p_index(%s, %s)" % (board[0,0,0,-1], max(policy), value), x, y)
         resign = resign_model1 if current_model_indicator == model1_indicator else resign_model2
         if resign and value <= resign:
             end_reason = "resign"
@@ -213,9 +217,8 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if conf['SHOW_EACH_MOVE']:
             # Inverted here because we already swapped players
             color = "W" if player == 1 else "B"
-            print("%s(%s,%s) p:%s  v:%s " % (color, x, y, policy[index], value))
+            print("%s(%s,%s)" % (color, x, y))
             print(show_board(board))
-            print("")
 
 
     winner, black_points, white_points = get_winner(board)
