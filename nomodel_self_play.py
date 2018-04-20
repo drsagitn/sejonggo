@@ -163,7 +163,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if conf['SHOW_EACH_MOVE']:
             pindex = [i for i, j in enumerate(policy) if j == max(policy)][0]  # get index of max policy
             x, y = index2coord(pindex)  # try to see where this policy advise to go
-            print("%s to play max_p:%s  v:%s max_p_index(%s, %s)" % (board[0,0,0,-1], max(policy), value), x, y)
+            print("%s to play max_p:%s  v:%s max_p_index(%s, %s)" % (board[0,0,0,-1], max(policy), value, x, y))
         resign = resign_model1 if current_model_indicator == model1_indicator else resign_model2
         if resign and value <= resign:
             end_reason = "resign"
