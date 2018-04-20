@@ -250,6 +250,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         print("")
         print("B:%s, W:%s" % (modelB_name, modelW_name))
         print("Bvalue:%s, Wvalue:%s" % (bvalue, wvalue))
+        print("Resign threshold: %s" % resign)
         print(show_board(board))
         print("Game played (%s: %s) : %s" % (winner_string, end_reason, datetime.datetime.now() - start))
 
