@@ -19,13 +19,13 @@ def save_file(model_name, game_n, move_data, winner, game_name="game"):
     player = move_data['player']
     value_target = 1 if winner == player else -1
     move = move_data['move_n']
-    directory = os.path.join(conf["GAMES_DIR"], model_name, game_name % "_%03d" % game_n, "move_%03d" % move)
+    directory = os.path.join(conf["GAMES_DIR"], model_name, game_name + "_%03d" % game_n, "move_%03d" % move)
     try:
         os.makedirs(directory)
     except OSError:
         while True:
             game_n += 1
-            directory = os.path.join(conf['GAMES_DIR'], model_name, game_name % "_%03d" % game_n, "move_%03d" % move)
+            directory = os.path.join(conf['GAMES_DIR'], model_name, game_name + "_%03d" % game_n, "move_%03d" % move)
             try:
                 os.makedirs(directory)
                 break
