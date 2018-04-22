@@ -44,7 +44,7 @@ conf = {
     ### EVALUATOR ###
     'EVALUATE_N_GAMES': 100,  # The number of games to test on to elect new best model, 400 in paper
     'EVALUATE_MARGIN': .55,  # Model has to win by that margin to be elected, 55% in paper
-    'SGF_ENABLED': True,
+    'SGF_ENABLED': False,
 
     ### DISTRIBUTED SYSTEM CONFIG
     'SELF_PLAY_SERVER': [
