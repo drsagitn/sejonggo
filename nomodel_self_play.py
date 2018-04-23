@@ -115,7 +115,7 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     end = datetime.datetime.now()
     try:
         d = tree_depth(mcts_tree)
-        print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s" % (end - start, d, len(mcts_tree['subtree'])))
+        print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s - %s" % (end - start, d, len(mcts_tree['subtree']), gpuid))
     except Exception as ex:
         print(ex)
 
@@ -160,7 +160,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if move_n == stop_exploration:
             temperature = 0
         policy, value = put_predict_request(current_model_indicator, board, response_now=True)
-        if conf['SHOW_EACH_MOVE']:
+        if conf['SHOW_EACH_MOVE'] and gpuid == 0:
             pindex = [i for i, j in enumerate(policy) if j == max(policy)][0]  # get index of max policy
             x, y = index2coord(pindex)  # try to see where this policy advise to go
             print("%s to play max_p:%s  v:%s max_p_index(%s, %s)" % (board[0,0,0,-1], max(policy), value, x, y))
@@ -214,10 +214,10 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         current_model_indicator, other_model_indicator = other_model_indicator, current_model_indicator
         mcts_tree, other_mcts = other_mcts, mcts_tree
 
-        if conf['SHOW_EACH_MOVE']:
+        if conf['SHOW_EACH_MOVE'] and gpuid == 0:
             # Inverted here because we already swapped players
             color = "W" if player == 1 else "B"
-            print("%s(%s,%s)" % (color, x, y))
+            print("%s(%s,%s) played by %s" % (color, x, y, other_model_indicator))
             print(show_board(board))
 
 
