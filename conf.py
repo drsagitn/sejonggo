@@ -7,7 +7,7 @@ conf = {
     'LOG_DIR': 'logs',
     'TMP_DIR': 'temp',
     'BEST_MODEL': 'best_model.h5',
-    'SHOW_EACH_MOVE': False,
+    'SHOW_EACH_MOVE': True,
     'SHOW_END_GAME': True,
     'REPORT_PERIOD': 200,
     'GAMES_DIR': 'sp_eval_games',
