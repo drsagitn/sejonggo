@@ -23,7 +23,7 @@ def main():
             print("No new best model for self-playing. Stopping..")
             destroy_predicting_workers()
             break
-
+        print("SELF-PLAYING BEST MODEL ", curr_best_model_name)
         workers = [NoModelSelfPlayWorker(i) for i in GPUs]
         for p in workers: p.start()
         for p in workers: p.join()
