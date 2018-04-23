@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import os
 import shutil
 
+
 def get_prev_self_play_model_dir(best_model_name=None):
     if best_model_name is None:  # get the latest best model
         max_index = np.Inf
@@ -30,11 +31,13 @@ def get_prev_self_play_model_dir(best_model_name=None):
             continue
     return os.path.join(conf['SELF_PLAY_DIR'], best_model_name_result) if best_model_name_result else None
 
+
 def clean_unused_self_play_data(latest_trained_dir):
     while latest_trained_dir is not None:
         latest_trained_dir = get_prev_self_play_model_dir(latest_trained_dir)
         if latest_trained_dir is not None:
             shutil.rmtree(latest_trained_dir)
+
 
 def get_training_desc():
     # a sliding window implementation to get most recent 500,000 self-play games
@@ -58,8 +61,6 @@ def get_training_desc():
     clean_unused_self_play_data(self_play_best_model_dir)
     return {'train': x_train, 'validation': x_test}
 
-if __name__ == "__main__":
-    get_training_desc()
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
