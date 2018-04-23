@@ -10,7 +10,7 @@ from evaluator import promote_best_model
 from simulation_workers import init_simulation_workers, destroy_simulation_workers, init_simulation_workers_by_gpuid
 from nomodel_self_play import play_game_async
 from predicting_queue_worker import put_name_request
-from scpy import sync_game_data
+from scpy import sync_eval_game_data
 from conf import conf
 from sgfsave import save_game_data
 from app_log import setup_logging
@@ -151,7 +151,8 @@ class NoModelEvaluateWorker(Process):
                     save_game_data(latest_model_name, game, game_data, game_name="eval_game")  # save game data to self-play folder for training
                     self.save_eval_game(latest_model_name, game, winner_model)  # save game result for statistic
                     if conf['TRAINING_SERVER']:
-                        sync_game_data(conf['SELF_PLAY_DIR'], latest_model_name, game_name)
+                        #  Copy eval_game to self-play dir in training server
+                        sync_eval_game_data(latest_model_name, game_name)
             else:
                 print("BEST MODEL and LAST MODEL are the same!! Quitting")
             destroy_simulation_workers()

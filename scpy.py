@@ -75,6 +75,17 @@ def sync_game_data(operating_dir, model_name, game_name):
     d.push_remote_site()
     print("Finish sending data.")
 
+def sync_eval_game_data(model_name, game_name):
+    #  I am SPE Server I want to send my evaluation game data to Training Server
+    remote_server = {**conf['TRAINING_SERVER']}  # Shallow copy conf to variable
+    remote_server['dest'] = os.path.join(remote_server['dest'], conf['SELF_PLAY_DIR'], model_name)
+
+    local_dir = os.path.join(conf['EVAL_DIR'], model_name, game_name)
+    print('Sending eval game data to training server. Game ', game_name)
+    d = DirectoriesSync(local_dir, remote_server)
+    d.push_remote_site()
+    print("Finish sending data.")
+
 
 def sync_all_game_data(operating_dir, model_name=None):
     #  I am Self-play Server, I want to send all my game data to Training Server
