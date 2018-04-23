@@ -40,6 +40,7 @@ conf = {
     'NUM_WORKERS': 64,  # We use this many GPU workers so split the task, 64 in paper. This is actually num of iteration, should be set so as NUM_WORKER * BATCH_SIZE = NUM OF SAMPLES IN A DATASET = 25k * num of move of each game
     'HISTOGRAM_FREQ': 0,  # Shows the histograms in Tensorboard. For debugging
     'VALIDATION_SPLIT': 0,  # Needed if you want histograms in Tensorboard.
+    'N_MOST_RECENT_GAMES': 500000,  # Number of most recent self-play games to retrieve for training. 500,000 in the paper. Data outside this range will be purged
 
     ### EVALUATOR ###
     'EVALUATE_N_GAMES': 100,  # The number of games to test on to elect new best model, 400 in paper

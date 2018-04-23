@@ -5,30 +5,54 @@ import h5py
 from sklearn.model_selection import train_test_split
 import os
 
+def get_prev_self_play_model_dir(best_model_name=None):
+    if best_model_name is None:  # get the latest best model
+        max_index = np.Inf
+    else:  # get the latest best model until this best model
+        try:
+            best_model_name = best_model_name.split("/")[-1]  # get the file name only if input is long path
+            best_model_name = best_model_name.split('.')[0]
+            max_index = int(best_model_name.split("_")[-1])
+        except:
+            max_index = np.Inf
 
-def get_training_desc():
-    # find best model name (latest model in self-play dir)
-    best_model_name = None
     index = 0
+    best_model_name_result = None
     for filename in os.listdir(conf['SELF_PLAY_DIR']):
         try:
-            name = filename.split('.')[0] # remove .h5
-            i = int(name.split('_')[-1]) #may throw exception here
-            if i > index:
-                best_model_name = filename
+            name = filename.split('.')[0]  # remove .h5
+            i = int(name.split('_')[-1])  # may throw exception here
+            if index < i < max_index:
+                best_model_name_result = filename
                 index = i
         except:
             continue
-    if not best_model_name:
-        raise FileNotFoundError("Can not find self-play directory")
+    return os.path.join(conf['SELF_PLAY_DIR'], best_model_name_result) if best_model_name_result else None
+
+
+def get_training_desc():
+    # a sliding window implementation to get most recent 500,000 self-play games
     all_files = []
-    for root, dirs, files in os.walk(os.path.join(conf['SELF_PLAY_DIR'], best_model_name)):
-        for f in files:
-            full_filename = os.path.join(root, f)
-            all_files.append(full_filename)
+    n_game = 0
+    self_play_best_model_dir = None
+    while n_game < conf['N_MOST_RECENT_GAMES']:
+        self_play_best_model_dir = get_prev_self_play_model_dir(self_play_best_model_dir)
+        if self_play_best_model_dir is None:
+            if n_game == 0: # Found no game data at all
+                raise FileNotFoundError("Can not find self-play directory")
+            break
+        n_game += len(os.listdir(self_play_best_model_dir))
+        for root, dirs, files in os.walk(self_play_best_model_dir):
+            for f in files:
+                full_filename = os.path.join(root, f)
+                all_files.append(full_filename)
+
     x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
+    #  TODO: clean up old data that not longer needed for training
     return {'train': x_train, 'validation': x_test}
 
+if __name__ == "__main__":
+    get_training_desc()
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
