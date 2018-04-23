@@ -4,6 +4,7 @@ from conf import conf
 import h5py
 from sklearn.model_selection import train_test_split
 import os
+import shutil
 
 def get_prev_self_play_model_dir(best_model_name=None):
     if best_model_name is None:  # get the latest best model
@@ -29,6 +30,11 @@ def get_prev_self_play_model_dir(best_model_name=None):
             continue
     return os.path.join(conf['SELF_PLAY_DIR'], best_model_name_result) if best_model_name_result else None
 
+def clean_unused_self_play_data(latest_trained_dir):
+    while latest_trained_dir is not None:
+        latest_trained_dir = get_prev_self_play_model_dir(latest_trained_dir)
+        if latest_trained_dir is not None:
+            shutil.rmtree(latest_trained_dir)
 
 def get_training_desc():
     # a sliding window implementation to get most recent 500,000 self-play games
@@ -48,7 +54,8 @@ def get_training_desc():
                 all_files.append(full_filename)
 
     x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
-    #  TODO: clean up old data that not longer needed for training
+    #  clean up old data that not longer needed for training
+    clean_unused_self_play_data(self_play_best_model_dir)
     return {'train': x_train, 'validation': x_test}
 
 if __name__ == "__main__":
