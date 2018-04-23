@@ -49,6 +49,7 @@ def get_training_desc():
         if self_play_best_model_dir is None:
             if n_game == 0: # Found no game data at all
                 raise FileNotFoundError("Can not find self-play directory")
+            print("Total games for training per epoch", n_game)
             break
         n_game += len(os.listdir(self_play_best_model_dir))
         for root, dirs, files in os.walk(self_play_best_model_dir):
