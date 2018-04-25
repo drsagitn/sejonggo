@@ -6,13 +6,29 @@ from keras.utils import multi_gpu_model
 from conf import conf
 import logging
 from data_generator import DataGenerator, get_training_desc
-from model import load_latest_model, loss, SGD
+from model import load_latest_model, loss, SGD, load_model_by_name
 from scpy import sync_model
+import atexit
 from app_log import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
 #  Continuous training implementation
+
+model = None
+
+
+def save_backup_model():
+    if model is not None:
+        model.save(os.path.join(conf['MODEL_DIR'], "exit_backup.h5"))
+
+
+def rename_model(model_file_name, new_model_name):
+    m = load_model_by_name(model_file_name)
+    m.name = new_model_name
+    m.save(os.path.join(conf['MODEL_DIR'], new_model_name + ".h5"))
+    print("Done")
+
 
 def main():
     init_directories()
@@ -30,6 +46,7 @@ def main():
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUs).strip('[').strip(']').strip(' ')
 
+    global model
     with tf.device('/cpu:0'):
         model = load_latest_model()
 
@@ -50,11 +67,14 @@ def main():
         validation_generator = DataGenerator(partition['validation'], None, **params)
         callbacks_list = []
 
-        pmodel.fit_generator(generator=training_generator,
-                             # validation_data=validation_generator,
-                             use_multiprocessing=True,
-                             workers=NUM_WORKERS, epochs=EPOCHS_PER_SAVE,
-                             callbacks=callbacks_list)
+        EPOCHS_PER_BACKUP = conf['EPOCHS_PER_BACKUP']
+        for i in range(EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP):
+            pmodel.fit_generator(generator=training_generator,
+                                 # validation_data=validation_generator,
+                                 use_multiprocessing=True,
+                                 workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP,
+                                 callbacks=callbacks_list)
+            model.save(os.path.join(conf['MODEL_DIR'], "backup.h5"))
 
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
         if curr_loss[0] < smallest_loss:
@@ -66,5 +86,7 @@ def main():
             sync_model(new_name)  # copy to other self-play servers
             base_name, index = model.name.split('_')
 
+
+atexit.register(save_backup_model)
 if __name__ == "__main__":
     main()
