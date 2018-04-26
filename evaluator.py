@@ -69,7 +69,7 @@ def promote_best_model(cleanup=True):
     for model_name in result.keys():
         _, index = model_name.split('_')
         if result[model_name] > conf['EVALUATE_MARGIN']:
-            logger.info('We have new best model %s', model_name)
+            logger.info('####### WE HAVE NEW BEST MODEL %s', model_name)
             # save best model as best.h5
             shutil.copyfile(os.path.join(conf['MODEL_DIR'], model_name + ".h5"), os.path.join(conf['MODEL_DIR'], conf['BEST_MODEL']))
             sync_model()  # copy best model to other self-play servers
