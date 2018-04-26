@@ -55,16 +55,17 @@ def eval_statistic():
         model_dir = os.path.join(EVAL_DIR, model_name)
         if os.path.isdir(model_dir):
             for game_dir in os.listdir(model_dir):
-                total += 1
-                if os.path.isfile(os.path.join(model_dir, game_dir, model_name)):
-                    wins += 1
+                if game_dir.startswith('game'):  # only statistic on game_xxx folder
+                    total += 1
+                    if os.path.isfile(os.path.join(model_dir, game_dir, model_name)):
+                        wins += 1
         result[model_name] = wins/total if total != 0 else 0
     return result
 
 
 def promote_best_model(cleanup=True):
     result = eval_statistic() # should be the result of 1 latest model => clean up after statistic
-    logger.info('Evaluation result: %s', result)
+    logger.info('###### CHECKING TOTAL WINRATE: %s', result)
     for model_name in result.keys():
         _, index = model_name.split('_')
         if result[model_name] > conf['EVALUATE_MARGIN']:
