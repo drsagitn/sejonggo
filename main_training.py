@@ -76,6 +76,7 @@ def main():
                                  workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP,
                                  callbacks=callbacks_list)
             model.save(os.path.join(conf['MODEL_DIR'], "backup.h5"))
+            print('Auto save model backup.h5')
 
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
         if curr_loss[0] < smallest_loss:

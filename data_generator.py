@@ -40,6 +40,7 @@ def clean_unused_self_play_data(latest_trained_dir):
 
 
 def get_training_desc():
+    # TODO: add log for which data folder it get for training
     # a sliding window implementation to get most recent 500,000 self-play games
     all_files = []
     n_game = 0
