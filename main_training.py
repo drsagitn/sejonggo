@@ -69,6 +69,7 @@ def main():
 
         EPOCHS_PER_BACKUP = conf['EPOCHS_PER_BACKUP']
         for i in range(EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP):
+            print("CYCLE ", i)
             pmodel.fit_generator(generator=training_generator,
                                  # validation_data=validation_generator,
                                  use_multiprocessing=True,
