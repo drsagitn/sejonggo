@@ -106,5 +106,6 @@ class DataGenerator(keras.utils.Sequence):
                 X[j] = board
                 policy_y[j] = value_target
                 value_y[j] = policy
+                f.close()
 
         return X, [value_y, policy_y]
