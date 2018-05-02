@@ -3,7 +3,6 @@ from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
 from utils import init_directories, clean_up_empty
 from predicting_queue_worker import put_name_request
-from scpy import sync_all_game_data
 import sys
 
 
@@ -21,13 +20,13 @@ def main():
             finished_best_model_name = curr_best_model_name
         else:
             print("No new best model for self-playing. Stopping..")
-            destroy_predicting_workers()
+            destroy_predicting_workers(GPUs)
             break
         print("SELF-PLAYING BEST MODEL ", curr_best_model_name)
         workers = [NoModelSelfPlayWorker(i) for i in GPUs]
         for p in workers: p.start()
         for p in workers: p.join()
-        destroy_predicting_workers()
+        destroy_predicting_workers(GPUs)
 
 
 if __name__ == "__main__":

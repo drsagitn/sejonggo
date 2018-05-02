@@ -4,7 +4,6 @@ from conf import conf
 from selfplay_worker import NoModelSelfPlayWorker
 from evaluate_worker import NoModelEvaluateWorker
 from utils import init_directories, clean_up_empty
-from scpy import sync_all_game_data
 from evaluator import promote_best_model
 
 
@@ -21,7 +20,7 @@ def main():
             workers = [NoModelSelfPlayWorker(i) for i in GPUs]
             for p in workers: p.start()
             for p in workers: p.join()
-            destroy_predicting_workers()
+            destroy_predicting_workers(GPUs)
 
         # EVALUATE
         init_predicting_workers(GPUs)  # re-init predicting worker to run with latest trained model (sent from train server)
