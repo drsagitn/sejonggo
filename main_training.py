@@ -70,7 +70,7 @@ def main():
         EPOCHS_PER_BACKUP = conf['EPOCHS_PER_BACKUP']
         cycle = EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP
         for i in range(cycle):
-            logger.info("CYCLE " + i + "/" + cycle)
+            logger.info("CYCLE {}/{}".format(i, cycle))
             pmodel.fit_generator(generator=training_generator,
                                  # validation_data=validation_generator,
                                  use_multiprocessing=True,
