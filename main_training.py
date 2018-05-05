@@ -70,18 +70,19 @@ def main():
         EPOCHS_PER_BACKUP = conf['EPOCHS_PER_BACKUP']
         cycle = EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP
         for i in range(cycle):
-            print("CYCLE ", i, "/", cycle)
+            logger.info("CYCLE " + i + "/" + cycle)
             pmodel.fit_generator(generator=training_generator,
                                  # validation_data=validation_generator,
                                  use_multiprocessing=True,
                                  workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP,
                                  callbacks=callbacks_list)
             model.save(os.path.join(conf['MODEL_DIR'], "backup.h5"))
-            print('Auto save model backup.h5')
+            logger.info('Auto save model backup.h5')
 
+        logger.info("Validating model")
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
         if curr_loss[0] < smallest_loss:
-            print("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
+            logger.info("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
             smallest_loss = curr_loss[0]
             model.name = new_name.split('.')[0]
             model.save(os.path.join(conf['MODEL_DIR'], new_name))
