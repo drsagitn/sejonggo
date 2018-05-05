@@ -50,7 +50,7 @@ def sync_model(model_name=conf['BEST_MODEL']):
     for rs in conf['SELF_PLAY_SERVER']:
         rs_copy = {**rs}  # Shallow copy conf to variable
         rs_copy['dest'] = os.path.join(rs_copy['dest'], conf['MODEL_DIR'])
-        print('Syncing model %s to remote place %s' % (local_model_file, rs_copy['host'], rs_copy['dest']))
+        print('Syncing model %s to remote place %s:%s' % (local_model_file, rs_copy['host'], rs_copy['dest']))
         d = DirectoriesSync(local_model_file, rs_copy)
         d.push_remote_site()
 
