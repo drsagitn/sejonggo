@@ -66,7 +66,7 @@ def main():
         partition = get_training_desc()
         training_generator = DataGenerator(partition['train'], None, **params)
         validation_generator = DataGenerator(partition['validation'], None, **params)
-        reduce_lr = ReduceLROnPlateau(monitor='accuracy', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
+        reduce_lr = ReduceLROnPlateau(monitor='policy_out_acc', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
 
         callbacks_list = [reduce_lr]
 
