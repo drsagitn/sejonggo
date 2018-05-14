@@ -90,7 +90,7 @@ def build_model(name):
         value_out = Dense(1, activation='tanh', name="value_out", **REGULARIZERS)(value_hidden)
 
     model = Model(inputs=[_input], outputs=[policy_out, value_out], name=name)
-    sgd = SGD(lr=1e-2, momentum = 0.9)
+    sgd = SGD(lr=1e-2, momentum=0.9)
     model.compile(sgd, loss=loss)
     return model
 

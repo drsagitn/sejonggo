@@ -8,6 +8,7 @@ import logging
 from data_generator import DataGenerator, get_training_desc
 from model import load_latest_model, loss, SGD, load_model_by_name
 from scpy import sync_model
+from keras.callbacks import ReduceLROnPlateau
 import atexit
 from app_log import setup_logging
 setup_logging()
@@ -54,7 +55,7 @@ def main():
     smallest_loss = Inf
 
     pmodel = multi_gpu_model(model, gpus=n_gpu)
-    opt = SGD(lr=1e-4, momentum=0.9)
+    opt = SGD(lr=1e-2, momentum=0.9)
     pmodel.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
 
     params = {'dim': (SIZE, SIZE, 17),
@@ -65,7 +66,9 @@ def main():
         partition = get_training_desc()
         training_generator = DataGenerator(partition['train'], None, **params)
         validation_generator = DataGenerator(partition['validation'], None, **params)
-        callbacks_list = []
+        reduce_lr = ReduceLROnPlateau(monitor='accuracy', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
+
+        callbacks_list = [reduce_lr]
 
         EPOCHS_PER_BACKUP = conf['EPOCHS_PER_BACKUP']
         cycle = EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP
@@ -81,6 +84,7 @@ def main():
 
         logger.info("Validating model")
         curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
+        logger.info('Validation result: %s', curr_loss)
         if curr_loss[0] < smallest_loss:
             logger.info("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
             smallest_loss = curr_loss[0]
