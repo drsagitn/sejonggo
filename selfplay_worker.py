@@ -112,6 +112,10 @@ class NoModelSelfPlayWorker(Process):
                         current_resign = min_values[resignation_index]
 
                 moves = len(game_data['moves'])
+                if moves == 0:  # empty data
+                    print("No move generated! Remove dir ", directory)
+                    os.rmdir(directory)
+                    continue
                 speed = ((stop - start).seconds / moves) if moves else 0.
                 games.set_description(desc + " %s moves %.2fs/move " % (moves, speed))
                 save_self_play_data(model_name, game, game_data)
