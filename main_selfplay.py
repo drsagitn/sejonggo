@@ -23,7 +23,7 @@ def main():
             destroy_predicting_workers(GPUs)
             break
         print("SELF-PLAYING BEST MODEL ", curr_best_model_name)
-        workers = [NoModelSelfPlayWorker(i) for i in GPUs]
+        workers = [NoModelSelfPlayWorker(i) for i in range(conf['N_GAME_PROCESS'])]
         for p in workers: p.start()
         for p in workers: p.join()
         destroy_predicting_workers(GPUs)
