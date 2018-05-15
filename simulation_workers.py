@@ -9,7 +9,7 @@ GPUS = conf['GPUs']
 board_queue = Queue()
 subtree_queue = Queue()
 simulation_result_queue = {}
-for i in GPUS:
+for i in range(conf['N_GAME_PROCESS']):
     simulation_result_queue[i] = SimpleQueue()
 
 process_pool = None
