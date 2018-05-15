@@ -39,7 +39,7 @@ def destroy_simulation_workers():
         process_pool.join()
 
 
-def basic_tasks2(node, board, moves, model_indicator, original_player, gpuid):
+def basic_tasks2(node, board, moves, model_indicator, original_player, process_id):
     for m in moves:
         x, y = index2coord(m)
         board, _ = make_play(x, y, board)
@@ -51,7 +51,7 @@ def basic_tasks2(node, board, moves, model_indicator, original_player, gpuid):
     node['count'] += 1
     node['value'] += v
     node['mean_value'] = node['value'] / float(node['count'])
-    simulation_result_queue[gpuid].put((node, moves))
+    simulation_result_queue[process_id].put((node, moves))
 
 def basic_tasks(node, board, move, model_indicator, original_player):
     moves = [move]

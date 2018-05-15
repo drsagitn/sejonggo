@@ -134,7 +134,7 @@ class NoModelEvaluateWorker(Process):
                         continue
 
                     start = datetime.datetime.now()
-                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", conf['ENERGY'], stop_exploration=0, gpuid=self._gpuid)
+                    game_data = play_game_async("BEST_SYM", "LATEST_SYM", conf['ENERGY'], stop_exploration=0, process_id=self._gpuid)
                     stop = datetime.datetime.now()
 
                     # Some statistics

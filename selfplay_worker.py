@@ -59,13 +59,13 @@ class SelfPlayWorker(Process):
 
 
 class NoModelSelfPlayWorker(Process):
-    def __init__(self, gpuid):
+    def __init__(self, process_id):
         Process.__init__(self, name='SelfPlayProcessor')
-        self._gpuid = gpuid
+        self._process_id = process_id
 
     def run(self):
         try:
-            init_simulation_workers_by_gpuid(self._gpuid)
+            init_simulation_workers_by_gpuid(self._process_id)
             SELF_PLAY_DIR = conf['SELF_PLAY_DIR']
             RESIGNATION_PERCENT = conf['RESIGNATION_PERCENT']
             RESIGNATION_ALLOWED_ERROR = conf['RESIGNATION_ALLOWED_ERROR']
@@ -94,7 +94,7 @@ class NoModelSelfPlayWorker(Process):
                 else:
                     resign = None
                 start = datetime.datetime.now()
-                game_data = play_game_async("BEST_SYM", "BEST_SYM", energy, conf['STOP_EXPLORATION'], gpuid=self._gpuid, self_play=True,
+                game_data = play_game_async("BEST_SYM", "BEST_SYM", energy, conf['STOP_EXPLORATION'], process_id=self._process_id, self_play=True,
                                             resign_model1=resign, resign_model2=resign)
                 stop = datetime.datetime.now()
 

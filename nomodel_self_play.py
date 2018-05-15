@@ -53,7 +53,7 @@ def back_propagation(result, node):
             break
 
 
-def async_simulate2(node, board, model_indicator, energy, original_player, gpuid):
+def async_simulate2(node, board, model_indicator, energy, original_player, process_id):
     if node['subtree'] == {}:
         return
     from simulation_workers import basic_tasks2, process_pool, simulation_result_queue
@@ -66,16 +66,16 @@ def async_simulate2(node, board, model_indicator, energy, original_player, gpuid
             continue
         if best_leaf is None:
             print("No best leaf at energy ", energy)
-            r = simulation_result_queue[gpuid].get()
+            r = simulation_result_queue[process_id].get()
             back_propagation(r, node)
             pre_bp += 1
             continue
         best_leaf['parent'] = None
-        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, gpuid),
+        process_pool.apply_async(basic_tasks2, (best_leaf, board, moves, model_indicator, original_player, process_id),
                                  error_callback=error_handler)
         energy -= 1
     for i in range(ENERGY - pre_bp):
-        r = simulation_result_queue[gpuid].get()
+        r = simulation_result_queue[process_id].get()
         back_propagation(r, node)
 
 
@@ -136,7 +136,7 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
 
     return selected_a
 
-def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration, gpuid, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
+def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration, process_id, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):
     board, player = game_init()
     moves = []
 
@@ -160,7 +160,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         if move_n == stop_exploration:
             temperature = 0
         policy, value = put_predict_request(current_model_indicator, board, response_now=True)
-        if conf['SHOW_EACH_MOVE'] and gpuid == 0:
+        if conf['SHOW_EACH_MOVE'] and process_id == 0:
             pindex = [i for i, j in enumerate(policy) if j == max(policy)][0]  # get index of max policy
             x, y = index2coord(pindex)  # try to see where this policy advise to go
             print("%s to play max_p:%s  v:%s max_p_index(%s, %s)" % (board[0,0,0,-1], max(policy), value, x, y))
@@ -174,7 +174,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
             if self_play:
                 other_mcts = mcts_tree
 
-        index = select_play(board, energy, mcts_tree, temperature, current_model_indicator, gpuid)
+        index = select_play(board, energy, mcts_tree, temperature, current_model_indicator, process_id)
         x, y = index2coord(index)
 
         policy_target = np.zeros(SIZE*SIZE + 1)
@@ -214,7 +214,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
         current_model_indicator, other_model_indicator = other_model_indicator, current_model_indicator
         mcts_tree, other_mcts = other_mcts, mcts_tree
 
-        if conf['SHOW_EACH_MOVE'] and gpuid == 0:
+        if conf['SHOW_EACH_MOVE'] and process_id == 0:
             # Inverted here because we already swapped players
             color = "W" if player == 1 else "B"
             print("%s(%s,%s) played by %s" % (color, x, y, other_model_indicator))
