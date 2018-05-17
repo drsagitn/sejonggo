@@ -77,7 +77,7 @@ def main():
             pmodel.fit_generator(generator=training_generator,
                                  # validation_data=validation_generator,
                                  use_multiprocessing=True,
-                                 workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP,
+                                 workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP, verbose=2,
                                  callbacks=callbacks_list)
             model.save(os.path.join(conf['MODEL_DIR'], "backup.h5"))
             logger.info('Auto save model backup.h5')

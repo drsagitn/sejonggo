@@ -50,7 +50,7 @@ class PredictingQueueWorker(Process):
                         "BEST_NAME" : {'a':[]},
                         "LATEST_NAME": {'a': []}
                         }
-                n = conf['ENERGY']
+                n = conf['PREDICTING_BATCH_SIZE']
                 while n > 0 and not board_queue.empty():
                     try:
                         board, indicator, a, response_now = board_queue.get_nowait()
