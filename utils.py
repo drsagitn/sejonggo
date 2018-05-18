@@ -159,3 +159,12 @@ def clean_up_empty():
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+def prRed(prt): print("\033[91m {}\033[00m" .format(prt))
+def prGreen(prt): print("\033[92m {}\033[00m" .format(prt))
+def prYellow(prt): print("\033[93m {}\033[00m" .format(prt))
+def prLightPurple(prt): print("\033[94m {}\033[00m" .format(prt))
+def prPurple(prt): print("\033[95m {}\033[00m" .format(prt))
+def prCyan(prt): print("\033[96m {}\033[00m" .format(prt))
+def prLightGray(prt): print("\033[97m {}\033[00m" .format(prt))
+def prBlack(prt): print("\033[98m {}\033[00m" .format(prt))

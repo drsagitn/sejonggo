@@ -1,6 +1,5 @@
 import numpy as np
 import datetime
-from multiprocessing import Pipe
 from conf import conf
 from play import (
     index2coord, make_play, game_init,
@@ -9,6 +8,10 @@ from play import (
 )
 from predicting_queue_worker import put_predict_request, put_name_request
 from tree_util import find_best_leaf_virtual_loss, get_node_by_moves
+import logging
+from app_log import setup_logging
+setup_logging()
+logger = logging.getLogger(__name__)
 
 SIZE = conf['SIZE']
 MCTS_BATCH_SIZE = conf['MCTS_BATCH_SIZE']
@@ -115,9 +118,9 @@ def select_play(board, energy, mcts_tree, temperature, model_indicator, gpuid):
     end = datetime.datetime.now()
     try:
         d = tree_depth(mcts_tree)
-        print("################TIME PER MOVE: %s   tree depth: %s    1st level children: %s - %s" % (end - start, d, len(mcts_tree['subtree']), gpuid))
+        logger.debug("TIME PER MOVE: %s   tree depth: %s    1st level children: %s - %s" % (end - start, d, len(mcts_tree['subtree']), gpuid))
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
 
     if temperature == 1:
         total_n = sum(dic['count'] for dic in mcts_tree['subtree'].values())
