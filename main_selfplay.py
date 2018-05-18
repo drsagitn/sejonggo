@@ -7,7 +7,7 @@ import sys
 
 
 def main():
-    sys.setrecursionlimit(2000)
+    sys.setrecursionlimit(10000)
     init_directories()
     clean_up_empty()
     GPUs = conf['GPUs']
