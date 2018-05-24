@@ -75,8 +75,8 @@ class NoModelSelfPlayWorker(Process):
             energy = conf['ENERGY']
             model_name = put_name_request("BEST_NAME")
 
-            desc = "Async Self play %s for %s games" % (model_name, n_games)
-            games = tqdm.tqdm(range(game_range[0], game_range[1]), desc=desc)
+            desc = "Async Self play %s for %s games labels from %s to %s" % (model_name, n_games, game_range[0], game_range[1])
+            games = tqdm.tqdm(range(n_games), desc=desc)
             current_resign = None
             min_values = []
             for game in games:

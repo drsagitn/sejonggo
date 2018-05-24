@@ -24,7 +24,7 @@ def main():
 
         # EVALUATE
         init_predicting_workers(GPUs)  # re-init predicting worker to run with latest trained model (sent from train server)
-        workers = [NoModelSelfPlayWorker(i) for i in range(conf['N_GAME_PROCESS'])]
+        workers = [NoModelEvaluateWorker(i) for i in range(conf['N_GAME_PROCESS'])]
         for p in workers: p.start()
         for p in workers: p.join()
         workers.clear()
