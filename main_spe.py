@@ -17,14 +17,14 @@ def main():
         if START_PHASE != "EVALUATING":
             # SELF-PLAY
             init_predicting_workers(GPUs)
-            workers = [NoModelSelfPlayWorker(i) for i in GPUs]
+            workers = [NoModelSelfPlayWorker(i) for i in range(conf['N_GAME_PROCESS'])]
             for p in workers: p.start()
             for p in workers: p.join()
             destroy_predicting_workers(GPUs)
 
         # EVALUATE
         init_predicting_workers(GPUs)  # re-init predicting worker to run with latest trained model (sent from train server)
-        workers = [NoModelEvaluateWorker(i) for i in GPUs]
+        workers = [NoModelSelfPlayWorker(i) for i in range(conf['N_GAME_PROCESS'])]
         for p in workers: p.start()
         for p in workers: p.join()
         workers.clear()
