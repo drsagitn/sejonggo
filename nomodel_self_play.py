@@ -190,7 +190,7 @@ def play_game_async(model1_indicator, model2_indicator, energy, stop_exploration
             'value': value,
             'move': (x, y),
             'move_n': move_n,
-            'player': player ,
+            'player': player
         }
         moves.append(move_data)
 
