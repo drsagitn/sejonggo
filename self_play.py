@@ -158,7 +158,7 @@ def select_play(policy, board, mcts_simulations, mcts_tree, temperature, model):
     index = mcts_decision(policy, board, mcts_simulations, mcts_tree, temperature, model)
     end = datetime.datetime.now()
     d = tree_depth(mcts_tree)
-    print("################TIME PER MOVE: %s   tree depth: %s" % (end - start, d))
+    # print("################TIME PER MOVE: %s   tree depth: %s" % (end - start, d))
     return index
 
 def play_game(model1, model2, mcts_simulations, stop_exploration, self_play=False, num_moves=None, resign_model1=None, resign_model2=None):

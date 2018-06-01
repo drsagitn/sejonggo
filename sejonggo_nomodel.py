@@ -1,12 +1,13 @@
 import sys
 from conf import conf
-from play import game_init, index2coord, coord2index, new_tree, make_play
-from self_play import select_play
-from model import load_best_model
+from play import game_init, index2coord, coord2index, make_play, new_tree
+from nomodel_self_play import select_play
+from predicting_queue_worker import put_predict_request
 import string
 from __init__ import __version__
 import numpy as np
 from simulation_workers import init_simulation_workers_by_gpuid
+from predicting_queue_worker import init_predicting_workers, destroy_predicting_workers
 import logging
 from app_log import setup_logging
 setup_logging()
@@ -17,8 +18,7 @@ SIZE = conf['SIZE']
 
 
 class SejongGoEngine(object):
-    def __init__(self, model, mcts_simulations, board, resign=None, temperature=0, add_noise=False):
-        self.model = model
+    def __init__(self, mcts_simulations, board, resign=None, temperature=0, add_noise=False, process_id=0):
         self.mcts_simulations = mcts_simulations
         self.resign = resign
         self.temperature = temperature
@@ -26,7 +26,13 @@ class SejongGoEngine(object):
         self.add_noise = add_noise
         self.mcts_tree = None
         self.move = 1
-        init_simulation_workers_by_gpuid(0)
+        self.process_id = process_id
+        self.model_indicator = "BEST"
+        init_predicting_workers(conf['GPUs'])
+        init_simulation_workers_by_gpuid(self.process_id)
+
+    def __del__(self):
+        destroy_predicting_workers()
 
     def set_temperature(self, temperature):
         self.temperature = temperature
@@ -45,9 +51,7 @@ class SejongGoEngine(object):
         return self.board, self.player
 
     def genmove(self, color):
-        policies, values = self.model.predict_on_batch(self.board)
-        policy = policies[0]
-        value = values[0]
+        policy, value = put_predict_request(self.model_indicator, self.board, response_now=True)
         if self.resign and value <= self.resign:
             x = 0
             y = SIZE + 1
@@ -56,7 +60,7 @@ class SejongGoEngine(object):
         if not self.mcts_tree or not self.mcts_tree['subtree']:
             self.mcts_tree = new_tree(policy, self.board)
 
-        index = select_play(policy, self.board, self.mcts_simulations, self.mcts_tree, self.temperature, self.model)
+        index = select_play(self.board, conf['ENERGY'], self.mcts_tree, self.temperature, self.model_indicator, self.process_id)
         logger.info("Generated index %s", index)
         x, y = index2coord(index)
         # show_tree(x, y, self.mcts_tree)
@@ -72,8 +76,7 @@ class GTPEngine(object):
     def __init__(self):
         self._komi = 0
         self.board, self.player = game_init()
-        model = load_best_model()
-        self.sejong_engine = SejongGoEngine(model, conf['MCTS_SIMULATIONS'], self.board)
+        self.sejong_engine = SejongGoEngine(conf['MCTS_SIMULATIONS'], self.board)
         print("GTP engine ready")
 
     def name(self):
