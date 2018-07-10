@@ -57,6 +57,18 @@ def get_training_desc():
             for f in files:
                 full_filename = os.path.join(root, f)
                 all_files.append(full_filename)
+        # look for data in extra training folder
+        extra_dirs = conf['EXTRA_TRAINING_DATA_DIR']
+        for extra_dir in extra_dirs:
+            extra_full_dir = os.path.join(extra_dir, self_play_best_model_dir.split("/")[-1])
+            if os.path.isdir(extra_full_dir):
+                print("Found extra training data dir:", extra_full_dir)
+                n_game += len(os.listdir(extra_full_dir))
+                for root, dirs, files in os.walk(extra_full_dir):
+                    for f in files:
+                        full_filename = os.path.join(root, f)
+                        all_files.append(full_filename)
+
 
     x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
     #  clean up old data that not longer needed for training
