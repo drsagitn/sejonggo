@@ -28,6 +28,7 @@ def get_prev_self_play_model_dir(best_model_name=None):
                 best_model_name_result = filename
                 index = i
         except:
+            print("EXCEPTION IN get_prev_self_play_model_dir")
             continue
     return os.path.join(conf['SELF_PLAY_DIR'], best_model_name_result) if best_model_name_result else None
 
@@ -111,13 +112,17 @@ class DataGenerator(keras.utils.Sequence):
         policy_y = np.zeros((self.batch_size, 1))
         value_y = np.zeros((self.batch_size, SIZE * SIZE + 1))
         for j, filename in enumerate(list_IDs_batch):
-            with h5py.File(filename) as f:
-                board = f['board'][:]
-                policy = f['policy_target'][:]
-                value_target = f['value_target'][()]
-                X[j] = board
-                policy_y[j] = value_target
-                value_y[j] = policy
-                f.close()
+            try:
+                with h5py.File(filename) as f:
+                    board = f['board'][:]
+                    policy = f['policy_target'][:]
+                    value_target = f['value_target'][()]
+                    X[j] = board
+                    policy_y[j] = value_target
+                    value_y[j] = policy
+                    f.close()
+            except:
+                print("Exception while reading", filename, " skipping it")
+                continue
 
         return X, [value_y, policy_y]
