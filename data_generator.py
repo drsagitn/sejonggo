@@ -54,6 +54,7 @@ def get_training_desc():
             print("Total games for training per epoch", n_game)
             break
         n_game += len(os.listdir(self_play_best_model_dir))
+        print("Reading training data from ", self_play_best_model_dir)
         for root, dirs, files in os.walk(self_play_best_model_dir):
             for f in files:
                 full_filename = os.path.join(root, f)
