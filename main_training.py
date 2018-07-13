@@ -5,7 +5,7 @@ from numpy import Inf
 from keras.utils import multi_gpu_model
 from conf import conf
 import logging
-from data_generator import DataGenerator, get_training_desc
+from data_generator import DataGenerator, get_KGS_training_desc, get_training_desc
 from model import load_latest_model, loss, SGD, load_model_by_name
 from scpy import sync_model
 from keras.callbacks import ReduceLROnPlateau
@@ -63,7 +63,7 @@ def main():
               'shuffle': True}
     while True:
         new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
-        partition = get_training_desc()
+        partition = get_KGS_training_desc()  # get_training_desc()
         training_generator = DataGenerator(partition['train'], None, **params)
         validation_generator = DataGenerator(partition['validation'], None, **params)
         reduce_lr = ReduceLROnPlateau(monitor='policy_out_acc', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
