@@ -4,7 +4,7 @@ conf = {
     'MODEL_DIR': 'sp_models',
     'EVAL_DIR': 'sp_eval_games',
     'SELF_PLAY_DIR': 'sp_self_play_data',
-    'EXTRA_TRAINING_DATA_DIR': [],
+    'EXTRA_TRAINING_DATA_DIR': ['/home/miruware/go/sejonggo/sp_self_play_data'],
     'LOG_DIR': 'logs',
     'TMP_DIR': 'temp',
     'BEST_MODEL': 'best_model.h5',
@@ -76,7 +76,7 @@ conf = {
                 'user':'miruware',
                 'host': '211.180.114.12',
                 'creds':'miruware!',
-                'dest': '/home/miruware/go/sejonggo'
+                'dest': '/home/miruware/sdb/go/sejonggo'
     },
 
     ### MCTS
