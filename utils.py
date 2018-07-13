@@ -136,6 +136,10 @@ def init_directories():
     except:
         pass
     try:
+        os.mkdir(os.path.join(conf['SELF_PLAY_DIR'], "KGS"))
+    except:
+        pass
+    try:
         os.mkdir(conf['TMP_DIR'])
     except:
         pass

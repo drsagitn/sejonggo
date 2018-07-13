@@ -21,6 +21,7 @@ eval_games/
 sp_eval_games/
 
 *.AppImage
+*.sgf
 
 mcts/
 self_play_data/
