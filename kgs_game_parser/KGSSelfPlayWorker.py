@@ -92,11 +92,11 @@ class KGSSelfPlayWorker(Process):
                 move = (board_size, board_size) #pass move
             else:
                 index = coord2index(move[0], move[1])
-            policy_target = np.zeros(board_size * board_size + 1)
-            policy_target[index] = 1
-            value = -1
+            policy_target = np.zeros(board_size * board_size + 1, dtype=float)
+            policy_target[index] = 1.0
+            value = -1.0
             if winner == player:
-                value = 1
+                value = 1.0
 
             move_data = {
                 'board': np.copy(board),
