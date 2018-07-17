@@ -1,11 +1,11 @@
 from conf import conf
-from KGSSelfPlayWorker import KGSSelfPlayWorker
+from kgs_game_parser.KGSSelfPlayWorker import KGSSelfPlayWorker
 from sgfmill import sgf
 import os
 import h5py
 
 def test():
-    with open("../kgs_data_small/Woods-Sunako.sgf", "rb") as f:
+    with open("kgs_data_small/Woods-Sunako.sgf", "rb") as f:
         game = sgf.Sgf_game.from_bytes(f.read())
     winner = game.get_winner()
     print("winner: ", winner)
@@ -30,7 +30,7 @@ def unit_test(game_name):
 
 def clean_up_empty():
     try:
-        dirs_to_clean = ["../" + conf['SELF_PLAY_DIR']]
+        dirs_to_clean = [conf['SELF_PLAY_DIR']]
         for folder in dirs_to_clean:
             for _dir in os.listdir(folder):
                 dir_path = os.path.join(folder, _dir)

@@ -21,8 +21,8 @@ class KGSSelfPlayWorker(Process):
 
     def run(self):
         try:
-            SELF_PLAY_DIR = "../" + conf['SELF_PLAY_DIR']
-            KGS_DATA_DIR = "../" + conf['KGS_DATA_DIR']
+            SELF_PLAY_DIR = conf['SELF_PLAY_DIR']
+            KGS_DATA_DIR = conf['KGS_DATA_DIR']
             game_dir = os.listdir(KGS_DATA_DIR)
             current_game = ""
             for file_name in game_dir:
@@ -122,7 +122,7 @@ class KGSSelfPlayWorker(Process):
 
     def save_self_play_data(self, game_name, game_data):
         print("Saving ", game_name)
-        SELF_PLAY_DIR = "../" + conf['SELF_PLAY_DIR']
+        SELF_PLAY_DIR = conf['SELF_PLAY_DIR']
         for move_data in game_data['moves']:
             board = move_data['board']
             policy_target = move_data['policy']
