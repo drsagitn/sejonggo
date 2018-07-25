@@ -90,37 +90,36 @@ def download_sgf(url):
         print('Donwloading ', url[0])
         filename = url[0].split("/")[-1]
         response = request.urlopen(url[0])
-        with open('kgs_data/' + filename, 'bw') as f:
+        with open('kgs_data2/' + filename, 'bw') as f:
             f.write(response.read())
     except:
         print('Warning: Could not download file {} from {}'.format(url[0]))        
 
-
-if __name__ == '__main__':
-    # loader()    
+def download_from_url(url):
     pool = multiprocessing.Pool(processes=64)
-    month = 1    
-    total_game = 0;
-    games = []
-    for year in [2012, 2013, 2014, 2015, 2016, 2017, 2018]:
-        for month in range(12):
-            try:
-                url = "https://orb.at/top100/{}{num:02d}.html".format(year, num=month+1)
-                print('DOWNLOADING MAIN URL', url)
-                response = request.urlopen(url)
-            except:
-                print('WARNING: COULD NOT DOWNLOAD FROM MAIN URL ', url)
-            _data = response.read()    
-            m = re.findall(r"((https?):((//)|(\\\\))+([\w\d:#@%/;$()~_?\+-=\\\.&](#!)?)*)" ,str(_data))
-            print('Found {} games'.format(len(m)))
-            total_game += len(m)
-            for item in m:
-                pool.apply_async(download_sgf, args = (item, ))
-            # games = games + m
-
-    # pool.imap_unordered(download_sgf, games)
+    try:
+        print('DOWNLOADING MAIN URL', url)
+        response = request.urlopen(url)
+    except:
+        print('WARNING: COULD NOT DOWNLOAD FROM MAIN URL ', url)
+        return 0
+    _data = response.read()
+    m = re.findall(r"((https?):((//)|(\\\\))+([\w\d:#@%/;$()~_?\+-=\\\.&](#!)?)*)", str(_data))
+    print('Found {} games'.format(len(m)))
+    for item in m:
+        pool.apply_async(download_sgf, args=(item,))
     pool.close()
     pool.join()
     pool.terminate()
+    return len(m) #  total game
+
+if __name__ == '__main__':
+    month = 1
+    total_game = 0
+    games = []
+    for year in [2010, 2011]:
+        for month in range(12):
+            url = "https://orb.at/top100/{}{num:02d}.html".format(year, num=month+1)
+            total_game += download_from_url(url)
     print("TOTAL GAME:", total_game)
-    
+
