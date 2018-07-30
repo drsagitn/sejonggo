@@ -48,15 +48,18 @@ def main():
     os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUs).strip('[').strip(']').strip(' ')
 
     global model
-    with tf.device('/cpu:0'):
-        model = load_latest_model()
+    model = load_latest_model()
 
     base_name, index = model.name.split('_')
     smallest_loss = Inf
 
-    pmodel = multi_gpu_model(model, gpus=n_gpu)
+    try:
+        model = multi_gpu_model(model, cpu_relocation=True)
+        print("Training using multiple GPUs..")
+    except:
+        print("Training using single GPU or CPU..")
     opt = SGD(lr=1e-2, momentum=0.9, clipnorm=0.9)
-    pmodel.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
+    model.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
 
     params = {'dim': (SIZE, SIZE, 17),
               'batch_size': BATCH_SIZE * n_gpu,
@@ -74,7 +77,7 @@ def main():
         cycle = EPOCHS_PER_SAVE//EPOCHS_PER_BACKUP
         for i in range(cycle):
             logger.info("CYCLE {}/{}".format(i+1, cycle))
-            pmodel.fit_generator(generator=training_generator,
+            model.fit_generator(generator=training_generator,
                                  # validation_data=validation_generator,
                                  use_multiprocessing=True,
                                  workers=NUM_WORKERS, epochs=EPOCHS_PER_BACKUP, verbose=1,
