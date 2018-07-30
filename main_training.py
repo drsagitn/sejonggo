@@ -55,7 +55,7 @@ def main():
     smallest_loss = Inf
 
     pmodel = multi_gpu_model(model, gpus=n_gpu)
-    opt = SGD(lr=1e-2, momentum=0.9)
+    opt = SGD(lr=1e-2, momentum=0.9, clipnorm=0.9)
     pmodel.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
 
     params = {'dim': (SIZE, SIZE, 17),
