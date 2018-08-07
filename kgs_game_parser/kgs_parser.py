@@ -45,7 +45,7 @@ def clean_up_empty():
 
 def main():
     clean_up_empty()
-    workers = [KGSSelfPlayWorker(i) for i in range(5)]
+    workers = [KGSSelfPlayWorker(i) for i in range(15)]
     for p in workers: p.start()
     for p in workers: p.join()
 
