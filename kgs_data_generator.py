@@ -81,10 +81,11 @@ class KGSDataGenerator(keras.utils.Sequence):
             else:
                 os.remove(os.path.join(data_dir, obj))
         # extract new zip file
-        print("Extracting ", zip_file)
-        patoolib.extract_archive(zip_file, outdir=data_dir)
+        full_zip_file = os.path.join(conf['KGS_ZIP_FOLDER'], zip_file)
+        print("Extracting ", full_zip_file)
+        patoolib.extract_archive(full_zip_file, outdir=data_dir)
         return_arr = []
-        for folder, subfolders, files in os.walk(dir):
+        for folder, subfolders, files in os.walk(data_dir):
             return_arr = return_arr + [(os.path.join(folder, f)) for f in files]
         print("Collect ", len(return_arr),"game files")
         return return_arr
