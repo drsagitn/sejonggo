@@ -47,11 +47,6 @@ class KGSDataGenerator(keras.utils.Sequence):
         X, y = self.__data_generation(self.get_movelist_by_batchsize())
         return X, y
 
-    def on_epoch_end(self):
-        self.indexes = np.arange(len(self.list_IDs))
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
-
     def __data_generation(self, move_list_batch):
         SIZE = conf['SIZE']
         X = np.zeros((self.batch_size, *self.dim))
