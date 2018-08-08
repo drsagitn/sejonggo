@@ -66,9 +66,9 @@ def main():
               'shuffle': True}
     while True:
         new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
-        partition = get_KGS_training_desc()  # get_training_desc()
+        # partition = get_KGS_training_desc()  # get_training_desc()
         training_generator = KGSDataGenerator(None, None, **params)
-        validation_generator = KGSDataGenerator(partition['validation'], None, **params)
+        # validation_generator = KGSDataGenerator(partition['validation'], None, **params)
         reduce_lr = ReduceLROnPlateau(monitor='policy_out_acc', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
 
         callbacks_list = [reduce_lr]
@@ -85,17 +85,17 @@ def main():
             model.save(os.path.join(conf['MODEL_DIR'], "backup.h5"))
             logger.info('Auto save model backup.h5')
 
-        logger.info("Validating model")
-        curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
-        logger.info('Validation result: %s', curr_loss)
-        if curr_loss[0] < smallest_loss:
-            logger.info("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
-            smallest_loss = curr_loss[0]
-            model.name = new_name.split('.')[0]
-            model.save(os.path.join(conf['MODEL_DIR'], new_name))
-            logger.info("Saved new model %s", new_name)
-            sync_model(new_name)  # copy to other self-play servers
-            base_name, index = model.name.split('_')
+        # logger.info("Validating model")
+        # curr_loss = model.evaluate_generator(generator=validation_generator) # ['loss', 'policy_out_loss', 'value_out_loss']
+        # logger.info('Validation result: %s', curr_loss)
+        # if curr_loss[0] < smallest_loss:
+        #     logger.info("Model improves. Validation loss from {} to {}. Save this model as {}".format(smallest_loss, curr_loss[0], new_name))
+        #     smallest_loss = curr_loss[0]
+        #     model.name = new_name.split('.')[0]
+        #     model.save(os.path.join(conf['MODEL_DIR'], new_name))
+        #     logger.info("Saved new model %s", new_name)
+        #     sync_model(new_name)  # copy to other self-play servers
+        #     base_name, index = model.name.split('_')
 
 
 atexit.register(save_backup_model)
