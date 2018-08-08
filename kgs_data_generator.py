@@ -8,6 +8,20 @@ from play import (
 import os
 import patoolib
 import shutil
+from sklearn.model_selection import train_test_split
+
+
+def get_KGS_training_desc():
+    all_files = []
+    data_dir = os.path.join(conf['SELF_PLAY_DIR'], "KGS")
+    print("READING KGS data from ", data_dir)
+    for root, dirs, files in os.walk(data_dir):
+        for f in files:
+            full_filename = os.path.join(root, f)
+            all_files.append(full_filename)
+
+    x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
+    return {'train': x_train, 'validation': x_test}
 
 class KGSDataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
