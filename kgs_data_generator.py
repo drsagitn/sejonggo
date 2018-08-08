@@ -20,7 +20,7 @@ def get_KGS_training_desc():
             full_filename = os.path.join(root, f)
             all_files.append(full_filename)
 
-    x_train, x_test = train_test_split(all_files, test_size=0.1, random_state=2)
+    x_train, x_test = train_test_split(all_files, test_size=0.3, random_state=2)
     return {'train': x_train, 'validation': x_test}
 
 class KGSDataGenerator(keras.utils.Sequence):

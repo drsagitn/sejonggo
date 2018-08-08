@@ -67,7 +67,7 @@ def main():
     while True:
         new_name = "_".join([base_name, str(int(index) + 1)]) + ".h5"
         partition = get_KGS_training_desc()  # get_training_desc()
-        training_generator = KGSDataGenerator(partition['train'], None, **params)
+        training_generator = KGSDataGenerator(None, None, **params)
         validation_generator = KGSDataGenerator(partition['validation'], None, **params)
         reduce_lr = ReduceLROnPlateau(monitor='policy_out_acc', factor=0.1, patience=3, verbose=1, mode='auto', min_lr=0)
 
