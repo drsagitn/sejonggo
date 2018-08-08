@@ -53,11 +53,11 @@ def main():
     base_name, index = model.name.split('_')
     smallest_loss = Inf
 
-    try:
-        model = multi_gpu_model(model, cpu_relocation=True)
-        print("Training using multiple GPUs..")
-    except:
-        print("Training using single GPU or CPU..")
+    # try:
+    #     model = multi_gpu_model(model, cpu_relocation=True)
+    #     print("Training using multiple GPUs..")
+    # except:
+    #     print("Training using single GPU or CPU..")
     opt = SGD(lr=1e-2, momentum=0.9, clipnorm=0.9)
     model.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
 
