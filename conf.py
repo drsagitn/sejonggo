@@ -17,6 +17,7 @@ conf = {
     'THREAD_SIMULATION': True,
     'PREDICTING_BATCH_SIZE': 32,
     'KGS_DATA_DIR': 'kgs_data',
+    'KGS_ZIP_FOLDER': 'kgs_data_zip',
 
     ### MODEL ###
     'N_RESIDUAL_BLOCKS': 20,  # Size of the tower of residual blocks, 20 for small model, 40 for alphagozero full size
