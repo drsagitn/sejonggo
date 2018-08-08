@@ -41,7 +41,7 @@ class KGSDataGenerator(keras.utils.Sequence):
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return int(400000000) / self.batch_size
+        return int(400000000 / self.batch_size)
 
     def __getitem__(self, index):
         X, y = self.__data_generation(self.get_movelist_by_batchsize())
