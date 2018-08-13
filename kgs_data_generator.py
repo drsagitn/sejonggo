@@ -35,8 +35,8 @@ class KGSDataGenerator(keras.utils.Sequence):
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
-        self.ziplist = self.get_ziplist()
-        self.gamelist = []
+        # self.ziplist = self.get_ziplist()
+        self.gamelist = self.get_gamelist()
         self.movelist = []
 
     def __len__(self):
@@ -70,31 +70,14 @@ class KGSDataGenerator(keras.utils.Sequence):
         return os.listdir(zip_folder)
 
     def get_gamelist(self):
-        if len(self.ziplist) <= 0:
-            return None
-        zip_file = self.ziplist.pop()
         data_dir = conf['KGS_DATA_DIR']
-        #  clean current game dir
-        for obj in os.listdir(data_dir):
-            if os.path.isdir(os.path.join(data_dir, obj)):
-                shutil.rmtree(os.path.join(data_dir, obj))
-            else:
-                os.remove(os.path.join(data_dir, obj))
-        # extract new zip file
-        full_zip_file = os.path.join(conf['KGS_ZIP_FOLDER'], zip_file)
-        print("Extracting ", full_zip_file)
-        patoolib.extract_archive(full_zip_file, outdir=data_dir)
         return_arr = []
-        for folder, subfolders, files in os.walk(data_dir):
-            return_arr = return_arr + [(os.path.join(folder, f)) for f in files]
-        print("Collect ", len(return_arr),"game files")
+        print("Collecting game files...")
+        for f in os.listdir(data_dir):
+            return_arr.append(os.path.join(data_dir, f))
         return return_arr
 
     def get_movelist(self):
-        if len(self.gamelist) <= 0:
-            self.gamelist = self.get_gamelist()
-            if self.gamelist is None:
-                return None
         game_file = self.gamelist.pop()
         return self.play_game_kgs(os.path.join(conf['KGS_DATA_DIR'], game_file))
 
