@@ -82,7 +82,7 @@ class KGSDataGenerator(keras.utils.Sequence):
         return self.play_game_kgs(os.path.join(game_file))
 
     def get_movelist_by_batchsize(self):
-        if len(self.movelist) < self.batch_size:
+        while len(self.movelist) < self.batch_size*8:
             self.movelist = self.movelist + self.get_movelist()
             if self.movelist is None:
                 return None
