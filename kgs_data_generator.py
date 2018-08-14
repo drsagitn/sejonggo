@@ -54,8 +54,8 @@ class KGSDataGenerator(keras.utils.Sequence):
         value_y = np.zeros((self.batch_size, SIZE * SIZE + 1))
         for j, item in enumerate(move_list_batch):
             board = item['board'][:]
-            policy = item['policy_target'][:]
-            value_target = item['value_target'][()]
+            policy = item['policy'][:]
+            value_target = item['value'][()]
             X[j] = board
             policy_y[j] = value_target
             value_y[j] = policy
