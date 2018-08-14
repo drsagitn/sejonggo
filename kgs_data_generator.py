@@ -97,11 +97,6 @@ class KGSDataGenerator(keras.utils.Sequence):
         b_player = root_node.get("PB")
         w_player = root_node.get("PW")
 
-        print(game_file)
-        print("board size ", board_size)
-        print("Player B - W:", b_player, w_player)
-        print("winner ", winner)
-
         SIZE = conf['SIZE']
         if board_size != SIZE:
             print("GAME SIZE IS NOT EXPECTED ", board_size)
@@ -117,7 +112,6 @@ class KGSDataGenerator(keras.utils.Sequence):
             pass
 
         for move_n, node in enumerate(game.get_main_sequence()):
-            print("move ", move_n)
             player, move = node.get_move()
             if player is None:
                 continue
